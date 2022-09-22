@@ -59,7 +59,7 @@ void RenderMenuMain() {
         warn('Failed to get safety lock for DataFileMgr');
     }
 #endif
-    if (UI::BeginMenu("Refresh Data", enableMenu)) {
+    if (UI::BeginMenu(Icons::Refresh + " Refresh Data", enableMenu)) {
         RM_Singletons();
         UI::Separator();
         for (uint i = 0; i < mediaTypes.Length; i++) {
