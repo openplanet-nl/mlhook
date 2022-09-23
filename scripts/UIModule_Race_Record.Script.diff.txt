@@ -1,0 +1,154 @@
+2309a2310
+> // #Include "ManiaApps/Nadeo/TMxSM/Race/UIModules/Record_Client.Script.txt" as RC
+2315c2316
+< #Struct K_State {
+---
+> #Struct RRK_State {
+2325a2327,2409
+> #Struct K_RecordGhost {
+>     Text AccountId;
+>     Ident GhostId;
+>     Ident GhostInstanceId;
+>     LibCommonTask_K_Task Task_RetrieveGhost;
+>     LibCommonTask_K_Task Task_RetrieveRecords;
+> }
+> 
+> #Struct LibLeaderboardAPI_K_ResponseFromGetMapTopRankings {
+> 	Text LeaderboardGroupUid;
+> 	LibCampaignStruct_K_MapTopRanking[] TopRankings;
+> }
+> #Struct LibLeaderboardAPI_K_ResponseFromGetSurroundingRankings {
+> 	Text LeaderboardGroupUid;
+> 	LibCampaignStruct_K_TopScore[][Text] TopsByZone;
+> }
+> #Struct LibLeaderboardAPI_K_ResponseFromGetMapSurroundingRankingsInClub {
+> 	Text LeaderboardGroupUid;
+> 	LibCampaignStruct_K_TopScore[] Tops;
+> }
+> 
+> // /* use with declare RecordsClient_K_State Race_Record_State for UI; */
+> #Struct K_State {
+>     Integer SetupUpdate;
+>     Integer ForceMapUpdate;
+>     Boolean AlwaysDisplayRecords;
+>     Boolean ReloadRecords;
+>     Boolean PBGhostEnabled;
+>     Boolean DisplayPBGhost;
+>     Boolean MedalEnabled;
+>     Boolean CelebratePB;
+>     Boolean CelebrateMedal;
+>     Text CurrentMapUid;
+>     Ident TaskIdGetRecordGhost;
+>     Ident PBGhostId;
+>     Ident PBGhostInstanceId;
+>     Ident PBCpSyncedGhostInstanceId;
+>     Text ScopeSeason;
+>     Text ScopeNotSeason;
+>     Text ModeName;
+>     Text CustomData;
+>     Text[Text] SeasonIds;
+>     Boolean RequestCelebration;
+>     K_Celebration Celebration;
+>     Integer CurrentMedal;
+>     Boolean RecordsEnabled;
+>     Integer MapAvailaibleOnNadeoServices;
+>     LibCommonTask_K_Task TaskGetMapFromUid;
+>     Boolean PlayerIsDisplayingRecords;
+>     Integer RecordsSelectedZone;
+>     Integer RecordsPlayerTime;
+>     Integer RecordsServerUpdate;
+>     Integer[] RecordsAreDirty;
+>     Integer[] RecordsNeedInit;
+>     Boolean RequestRecordsInProgress;
+>     Integer[] RecordsErrorCodes;
+>     LibCommonHttp_K_Request RequestZonesTopRecords;
+>     LibCommonHttp_K_Request RequestZonesSurroundingRecords;
+>     LibCommonHttp_K_Request RequestClubTopRecords;
+>     LibCommonHttp_K_Request RequestClubSurroundingRecords;
+>     LibCommonHttp_K_Request RequestClubVIPList;
+>     LibCommonHttp_K_Request RequestGlobalVIPList;
+>     Ident TaskIdGetClubVIPRecords;
+>     Ident TaskIdGetGlobalVIPRecords;
+>     LibLeaderboardAPI_K_ResponseFromGetMapTopRankings ResponseZonesTopRecords;
+>     LibLeaderboardAPI_K_ResponseFromGetSurroundingRankings ResponseZonesSurroundingRecords;
+>     LibLeaderboardAPI_K_ResponseFromGetMapTopRankingsInClub ResponseClubTopRecords;
+>     LibLeaderboardAPI_K_ResponseFromGetMapSurroundingRankingsInClub ResponseClubSurroundingRecords;
+>     Integer[Text] ResponseClubVIPRecords;
+>     Integer[Text] ResponseGlobalVIPRecords;
+>     Boolean LoadingRecords;
+>     Text RecordsLoadedForMapUid;
+>     Text RecordsLoadingForMapUid;
+>     Ident TaskIdRetrieveDisplayName;
+>     Integer RecordsClubId;
+>     Text RecordsClubName;
+>     K_TMxSM_Record_Records[] ZonesRecords;
+>     K_RecordGhost[Text] LoadingRecordGhosts;
+>     K_RecordGhost[Text] LoadedRecordGhosts;
+>     K_RecordGhost SpectatorTargetRecordGhost;
+>     Boolean ManialinkIsInitialized;
+> }
+> 
+15336c15420
+< Void Focus(CMlControl _From, CMlControl _To, CMlFrame _Scroll_Ranking, K_State _State, Boolean _IsMouse, Boolean _ForceFocusUpdate) {
+---
+> Void Focus(CMlControl _From, CMlControl _To, CMlFrame _Scroll_Ranking, RRK_State _State, Boolean _IsMouse, Boolean _ForceFocusUpdate) {
+15379c15463
+< Void Focus(CMlControl _From, CMlControl _To, CMlFrame _Scroll_Ranking, K_State _State, Boolean _IsMouse) {
+---
+> Void Focus(CMlControl _From, CMlControl _To, CMlFrame _Scroll_Ranking, RRK_State _State, Boolean _IsMouse) {
+15383c15467
+< Void Select(K_State _State, CMlControl _Control) {
+---
+> Void Select(RRK_State _State, CMlControl _Control) {
+15541c15625
+< Void SetFrameRecord(K_State _State, CMlFrame _Frame_Record, K_TMxSM_Record_Record _Record, Integer[Text] _RecordsStatus) {
+---
+> Void SetFrameRecord(RRK_State _State, CMlFrame _Frame_Record, K_TMxSM_Record_Record _Record, Integer[Text] _RecordsStatus) {
+15604c15688
+< 	K_State _State,
+---
+> 	RRK_State _State,
+15750c15834
+< Void ShowScrollRecord(K_State _State, CMlFrame _Frame_Record, K_TMxSM_Record_Record _Record, Integer[Text] _RecordsStatus) {
+---
+> Void ShowScrollRecord(RRK_State _State, CMlFrame _Frame_Record, K_TMxSM_Record_Record _Record, Integer[Text] _RecordsStatus) {
+15890,15891c15974,15975
+< K_State ChangeZone(
+< 	K_State _State,
+---
+> RRK_State ChangeZone(
+> 	RRK_State _State,
+15901c15985
+< 	declare K_State State = _State;
+---
+> 	declare RRK_State State = _State;
+15931c16015
+< declare K_State State;
+---
+> declare RRK_State State;
+15952c16036
+< declare K_Celebration Race_Record_Celebration for ClientUI;
+---
+> declare K_Celebration Race_Record_Celebration for ClientUI; // 15453
+16012c16096
+< State = K_State {
+---
+> State = RRK_State {
+16309a16394
+>                     SendCustomEvent("Debug_ComponentNavigation_C_EventType_NavigateMouse", ["yes"]);
+16321a16407
+>                     SendCustomEvent("debug-key-press", ["yes"]);
+16342a16429,16441
+>                             if (TMxSM_Race_Record_DisplayRecords) {
+>                                 // SendCustomEvent("TMxSM_Race_Record_SpectateGhost", ["LSKDJFLKSJD"]);
+>                                 declare K_State Race_Record_State for UI;
+>                                 // Race_Record_State.SetupUpdate = Race_Record_State.SetupUpdate * 7 - 1;
+>                                 // Race_Record_State.RecordsEnabled = True;
+>                                 // Race_Record_State.CurrentMapUid = "";
+>                                 Race_Record_State.RecordsAreDirty.add(0);
+>                                 Race_Record_State.RecordsAreDirty.add(1);
+>                                 Race_Record_State.RecordsAreDirty.add(2);
+>                                 Race_Record_State.RecordsAreDirty.add(3);
+>                                 Race_Record_State.RecordsAreDirty.add(4);
+>                                 SendCustomEvent("TMxSM_Race_Record_SpectateGhost", ["LSKDJFLKSJD----"^Race_Record_State.SetupUpdate]);
+>                             }
