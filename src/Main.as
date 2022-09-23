@@ -3,6 +3,7 @@ CGameDataFileManagerScript@ LastUsedDfm;
 void Main() {
     @LastUsedDfm = GetAccessibleDataFileMgr();
 #if DEV
+    ToggleGhostTest();
     // we don't need intercepts, but this helped determine that the accessible DataFileMgr was okay to use and mb is useful for monitoring game usage of the API
     Dev::InterceptProc("CGameDataFileManagerScript", "Media_RefreshFromDisk", _Media_RefreshFromDisk);
     Dev::InterceptProc("CGameDataFileManagerScript", "Map_RefreshFromDisk", _Map_RefreshFromDisk);
