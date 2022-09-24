@@ -1,25 +1,102 @@
-// none of these tests worked, but printing the events is useful
-//  for getting info out of maniascript
+/*
+
+a note from menu scripts about custom events:
+
+	// We use a json formatted string instead of the array directly because there is a limit
+	// to the number of values the array can contains. The `SendCustomEvent()` function will fail
+	// if there are too many entries.
+	Store::SendEvent(C_StoreId, C_Event_MapRecordsUpdated, [CampaignIdList.tojson()]);
+	Store::SendEvent(C_StoreId, C_Event_MapPlayerGlobalRankingsUpdated, [LeaderboardGroupUidList.tojson()]);
+
+*/
 
 void ToggleGhostTest() {
     Dev::InterceptProc("CGameManiaApp", "LayerCustomEvent", _LayerCustomEvent);
     Dev::InterceptProc("CGameManiaAppPlayground", "SendCustomEvent", _SendCustomEvent);
     Dev::InterceptProc("CGameManialinkScriptHandler", "SendCustomEvent", _SendCustomEventSH);
-    // Dev::InterceptProc("CGameGhostMgrScript", "Ghost_SetDossard", _Ghost_Add);
-    Dev::InterceptProc("CGameManialinkFrame", "GetFirstChild", logWhenCalled);
-    Dev::InterceptProc("CGameManialinkPage", "GetFirstChild", logWhenCalled);
-    Dev::InterceptProc("CGameManialinkFrame", "Scroll", logWhenCalled);
-    Dev::InterceptProc("CGameManialinkFrame", "HasClass", logWhenCalled);
-    Dev::InterceptProc("CGameManialinkFrame", "DataAttributeExists", logWhenCalled);
-    Dev::InterceptProc("CGameManialinkFrame", "DataAttributeGet", logWhenCalled);
-    Dev::InterceptProc("CGameManialinkFrame", "DataAttributeSet", logWhenCalled);
-    Dev::InterceptProc("CGameManialinkPage", "GetClassChildren", logWhenCalled);
-    Dev::InterceptProc("CGameManialinkPage", "ScrollToControl", logWhenCalled);
-    Dev::InterceptProc("CGamePlaygroundUIConfig", "GetLayerManialinkAction", logWhenCalled);
+    // Dev::InterceptProc("CGameManialinkFrame", "GetFirstChild", logWhenCalled);
+    // Dev::InterceptProc("CGameManialinkPage", "GetFirstChild", logWhenCalled);
+    // Dev::InterceptProc("CGameManialinkFrame", "Scroll", logWhenCalled);
+    // Dev::InterceptProc("CGameManialinkFrame", "HasClass", logWhenCalled);
+    // Dev::InterceptProc("CGameManialinkFrame", "DataAttributeExists", logWhenCalled);
+    // Dev::InterceptProc("CGameManialinkFrame", "DataAttributeGet", logWhenCalled);
+    // Dev::InterceptProc("CGameManialinkFrame", "DataAttributeSet", logWhenCalled);
+    // Dev::InterceptProc("CGameManialinkPage", "GetClassChildren", logWhenCalled);
+    // Dev::InterceptProc("CGameManialinkPage", "ScrollToControl", logWhenCalled);
+    // Dev::InterceptProc("CGamePlaygroundUIConfig", "GetLayerManialinkAction", logWhenCalled);
     // Dev::InterceptProc("CControlFrame", "SetLocation", logWhenCalled);
     // virtual:
     // Dev::InterceptProc("CControlFrame", "SetLocation", logWhenCalled);
-    startnew(SetUpGhostTest);
+    // Dev::InterceptProc("CGameGhostMgrScript", "Ghost_SetDossard", _Ghost_Add);
+    startnew(WatchForSetup);
+}
+
+void WatchForSetup() {
+    while (true) {
+        yield();
+        // wait for cmap to exist
+        while (cmap is null) {
+            yield();
+        }
+        print("cmap not null");
+        yield();
+        while (!uiPopulated) {
+            yield();
+        }
+        // wait for script hooks to be set up
+        while (!manialinkHooksSetUp) {
+            yield();
+            TryManialinkSetup();
+        }
+        if (targetSH is null) continue;
+        print("ML hook set up");
+        yield();
+        // wait for cmap to not exist
+        while (cmap !is null) {
+            yield();
+        }
+        print("cmap is null");
+    }
+}
+
+bool get_uiPopulated() {
+    if (cmap is null) return false;
+    if (cmap.UILayers.Length < 10) return false;
+    return true;
+}
+
+const string _attachId = "AngelScript_CallBack";
+
+bool get_manialinkHooksSetUp() {
+    bool foundCBLayer = false;
+    auto layers = cmap.UILayers;
+    for (uint i = 0; i < layers.Length; i++) {
+        auto layer = layers[i];
+        if (layer.AttachId == _attachId) {
+            if (targetSH is null) {
+                @targetSH = cast<CSmArenaInterfaceManialinkScripHandler>(layer.LocalPage.ScriptHandler);
+            }
+            foundCBLayer = true;
+            break;
+        }
+    }
+    return foundCBLayer;
+}
+
+void TryManialinkSetup() {
+    if (manialinkHooksSetUp) return;
+    auto layer = cmap.UILayerCreate();
+    layer.AttachId = _attachId;
+    layer.ManialinkPage = """
+<script><!--
+main() {
+    while(True) {
+        SendCustomEvent("AngelScript_Hook", []);
+        yield;
+    }
+}
+--></script>""";
+    @targetSH = cast<CSmArenaInterfaceManialinkScripHandler>(layer.LocalPage.ScriptHandler);
 }
 
 class CustomEvent {
@@ -32,6 +109,15 @@ class CustomEvent {
             auto item = data[i];
             this.data.Add(wstring(item));
         }
+    }
+
+    const string ToString() {
+        string dataStr = "{";
+        for (uint i = 0; i < data.Length; i++) {
+            dataStr += "'" + data[i] + "', ";
+        }
+        dataStr += "}";
+        return "CE(" + type + ", " + dataStr + ")";
     }
 }
 
@@ -46,27 +132,37 @@ void Render() {
         if (UI::Button("change opponents")) {
             eventQueue.InsertLast(CustomEvent("RaceMenuEvent_ChangeOpponents"));
         }
+        if (UI::Button("playmap-endracemenu-save-replay")) {
+            eventQueue.InsertLast(CustomEvent("playmap-endracemenu-save-replay"));
+        }
     }
     UI::End();
+}
+
+CGameManiaAppPlayground@ get_cmap() {
+    return GetApp().Network.ClientManiaAppPlayground;
 }
 
 CSmArenaInterfaceManialinkScripHandler@ targetSH;
 
 void SetUpGhostTest() {
     auto network = GetApp().Network;
-    auto cmap = GetApp().Network.ClientManiaAppPlayground;
     if (cmap is null) return;
-    auto layers = GetApp().Network.ClientManiaAppPlayground.UILayers;
-    CGameUILayer@ rr;
-    for (uint i = 0; i < layers.Length; i++) {
-        auto layer = layers[i];
-        if (layer.IsVisible && layer.ManialinkPageUtf8.StartsWith("\n<manialink name=\"UIModule_Race_Record\"")) {
-            print('found race_record with index: ' + i);
-            @rr = layer;
-            break;
-        }
-    }
-    MwFastBuffer<wstring> data;
+    auto layers = cmap.UILayers;
+    // CGameUILayer@ rr;
+    // for (uint i = layers.Length - 1; i >= 0; i--) {
+    //     auto layer = layers[i];
+    //     if (layer.IsVisible && layer.ManialinkPageUtf8.StartsWith("\n<manialink name=\"UIModule_Race_Record\"")) {
+    //         print('found race_record with index: ' + i);
+    //         @rr = layer;
+    //         break;
+    //     }
+    // }
+    // @targetSH = cast<CSmArenaInterfaceManialinkScripHandler>(rr.LocalPage.ScriptHandler);
+
+    // did not work, they do nothing
+
+    // MwFastBuffer<wstring> data;
     // data.Add(network.PlaygroundClientScriptAPI.LocalUser.WebServicesUserId);
     // data.Add(wstring("da4642f9-6acf-43fe-88b6-b120ff1308ba")); // scrappie
     // data.Add("9652fb43-3399-4f05-bdb5-57bcf8a4213b");
@@ -75,7 +171,6 @@ void SetUpGhostTest() {
     // network.ClientManiaAppPlayground.SendCustomEvent("TMxSM_Race_Record_ToggleGhost", data);
     // network.ClientManiaAppPlayground.SendCustomEvent("TMxSM_Race_Record_SpectateGhost", data);
 
-    @targetSH = cast<CSmArenaInterfaceManialinkScripHandler>(rr.LocalPage.ScriptHandler);
 
     // this crashes the game
     //cast<CSmArenaInterfaceManialinkScripHandler>(rr.LocalPage.ScriptHandler).SendCustomEvent(wstring("TMxSM_Race_Record_ToggleGhost"), data);
@@ -96,9 +191,8 @@ void SetUpGhostTest() {
         //     + "--></script>";
 
     if (targetSH !is null) {
-        string _attachId = "AngelScript_CallBack";
         bool foundCBLayer = false;
-        for (uint i = 0; i < layers.Length; i++) {
+        for (uint i = layers.Length - 1; i > 0; i--) {
             auto layer = layers[i];
             if (layer.AttachId == _attachId) {
                 foundCBLayer = true;
@@ -134,10 +228,10 @@ void RunGhostTest() {
     // @targetSH.Page = thePage; // no set-accessor :(
     // warn(thePage.ScriptHandler);
     eventQueue.InsertLast(CustomEvent("TMxSM_Race_Record_ToggleGhost", {"da4642f9-6acf-43fe-88b6-b120ff1308ba"}));
-    // eventQueue.InsertLast("8d90f6c6-5a03-4fd3-8026-791c4d7404db");
-    // eventQueue.InsertLast("41122fb7-f264-448e-9660-a418f438e58b");
-    // eventQueue.InsertLast("1336b019-0d7d-43f7-b227-ff336f8b7140");
-    // eventQueue.InsertLast("2a13aa7d-992d-4a7c-a3c5-d29b08b7f8cb");
+    eventQueue.InsertLast(CustomEvent("TMxSM_Race_Record_ToggleGhost", {"8d90f6c6-5a03-4fd3-8026-791c4d7404db"}));
+    eventQueue.InsertLast(CustomEvent("TMxSM_Race_Record_ToggleGhost", {"41122fb7-f264-448e-9660-a418f438e58b"}));
+    eventQueue.InsertLast(CustomEvent("TMxSM_Race_Record_ToggleGhost", {"1336b019-0d7d-43f7-b227-ff336f8b7140"}));
+    eventQueue.InsertLast(CustomEvent("TMxSM_Race_Record_ToggleGhost", {"2a13aa7d-992d-4a7c-a3c5-d29b08b7f8cb"}));
 }
 
 // bool updateLastNod = true;
@@ -147,20 +241,22 @@ CustomEvent@[] eventQueue = {};
 uint lastGameTime = 0;
 bool logWhenCalled(CMwStack &in stack, CMwNod@ nod) {
     if (noIntercept) return true;
-    UpdateGhosts_RunOnlyWhenSafe();
+    if (targetSH is null || targetSH.Page is null) return true;
+    SendEvents_RunOnlyWhenSafe();
     return true;
 }
 
-void UpdateGhosts_RunOnlyWhenSafe() {
-    if (targetSH is null) return;
+void SendEvents_RunOnlyWhenSafe() {
+    if (targetSH is null || targetSH.Page is null) return;
     uint gt = targetSH.GameTime;
-    if (targetSH !is null && gt > lastGameTime && targetSH.Page !is null) {
+    if (gt > lastGameTime) {
         lastGameTime = gt;
-        // print("logWhenCalled - " + gt);
+        // print("SendEvents_RunOnlyWhenSafe - " + gt);
         while (eventQueue.Length > 0) {
             // cannot do more than one at a time
             auto ce = eventQueue[eventQueue.Length - 1];
             eventQueue.RemoveLast();
+            trace('Processing event: ' + ce.ToString());
             noIntercept = true;
             // targetSH.SendCustomEvent(wstring("TMxSM_Race_Record_ToggleGhost"), data);
             targetSH.SendCustomEvent(ce.type, ce.data);
@@ -170,6 +266,7 @@ void UpdateGhosts_RunOnlyWhenSafe() {
 }
 
 bool _LayerCustomEvent(CMwStack &in stack, CMwNod@ nod) {
+    return true;
     auto data = stack.CurrentBufferWString();
     wstring type = stack.CurrentWString(1);
     print("LayerCustomEvent on nod: " + nod.IdName + " of type: " + type);
@@ -181,6 +278,7 @@ bool _LayerCustomEvent(CMwStack &in stack, CMwNod@ nod) {
 }
 
 bool _SendCustomEvent(CMwStack &in stack, CMwNod@ nod) {
+    return true;
     wstring type = stack.CurrentWString(1);
     // if (string(type) == "AngelScript_Hook") {return true;}
     auto data = stack.CurrentBufferWString();
@@ -203,7 +301,9 @@ bool _SendCustomEventSH(CMwStack &in stack, CMwNod@ nod) {
     if (noIntercept) return true;
     wstring type = stack.CurrentWString(1);
     if (string(type) != "AngelScript_Hook") {return true;}
-    UpdateGhosts_RunOnlyWhenSafe();
+    if (targetSH !is null && targetSH.Page !is null)
+        SendEvents_RunOnlyWhenSafe();
+    return false;
     if (false) {
         auto data = stack.CurrentBufferWString();
         if (nod.IdName.Length <= 0) {
