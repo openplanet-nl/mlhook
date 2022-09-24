@@ -1,17 +1,10 @@
-# Refresh Data
+# Manialink to AngelScript Hook
 
-This plugin provides a main menu item to call DataFileManager's refresh functions for UserData, Maps, and Replays.
-(Note: I do not think this works for items in the map editor)
+A dependency plugin (for use by other plugins) to enable running code at the same time as Manialink does.
 
-If you want to load something through `Documents\Trackmania\...`, then sometimes you need to restart the game to get it to load.
-
-This plugin can help, sometimes.
-Example: if I want to load a skin from `D\T\Skins\Models\HelmetPilot` then I usually need to restart the game.
-Now, I can:
-1. populate the skin directory
-2. call `refresh data > all media`
-3. attempt to load `D\T\Skins\Models\HelmetPilot\TheSkin.zip`
-**in that order** (i think)
+This allows the use of `SendCustomEvent` on script handlers without crashing the game.
+In general, it seems to allow calling code when `.Page` is not null.
+As far as I can tell, this is only true when Manialink code is executing.
 
 License: Public Domain
 

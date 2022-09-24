@@ -2,35 +2,23 @@
 
 a note from menu scripts about custom events:
 
-	// We use a json formatted string instead of the array directly because there is a limit
-	// to the number of values the array can contains. The `SendCustomEvent()` function will fail
-	// if there are too many entries.
+	> We use a json formatted string instead of the array directly because there is a limit
+	> to the number of values the array can contains. The `SendCustomEvent()` function will fail
+	> if there are too many entries.
 	Store::SendEvent(C_StoreId, C_Event_MapRecordsUpdated, [CampaignIdList.tojson()]);
 	Store::SendEvent(C_StoreId, C_Event_MapPlayerGlobalRankingsUpdated, [LeaderboardGroupUidList.tojson()]);
 
 */
 
-void ToggleGhostTest() {
+void HookManialinkCode() {
     Dev::InterceptProc("CGameManiaApp", "LayerCustomEvent", _LayerCustomEvent);
     Dev::InterceptProc("CGameManiaAppPlayground", "SendCustomEvent", _SendCustomEvent);
     Dev::InterceptProc("CGameManialinkScriptHandler", "SendCustomEvent", _SendCustomEventSH);
-    // Dev::InterceptProc("CGameManialinkFrame", "GetFirstChild", logWhenCalled);
-    // Dev::InterceptProc("CGameManialinkPage", "GetFirstChild", logWhenCalled);
-    // Dev::InterceptProc("CGameManialinkFrame", "Scroll", logWhenCalled);
-    // Dev::InterceptProc("CGameManialinkFrame", "HasClass", logWhenCalled);
-    // Dev::InterceptProc("CGameManialinkFrame", "DataAttributeExists", logWhenCalled);
-    // Dev::InterceptProc("CGameManialinkFrame", "DataAttributeGet", logWhenCalled);
-    // Dev::InterceptProc("CGameManialinkFrame", "DataAttributeSet", logWhenCalled);
-    // Dev::InterceptProc("CGameManialinkPage", "GetClassChildren", logWhenCalled);
-    // Dev::InterceptProc("CGameManialinkPage", "ScrollToControl", logWhenCalled);
-    // Dev::InterceptProc("CGamePlaygroundUIConfig", "GetLayerManialinkAction", logWhenCalled);
-    // Dev::InterceptProc("CControlFrame", "SetLocation", logWhenCalled);
-    // virtual:
-    // Dev::InterceptProc("CControlFrame", "SetLocation", logWhenCalled);
-    // Dev::InterceptProc("CGameGhostMgrScript", "Ghost_SetDossard", _Ghost_Add);
     startnew(WatchForSetup);
 }
 
+// Wait for cmap to be non-null and set up the hook.
+// Repeat so that it is done each time
 void WatchForSetup() {
     while (true) {
         yield();
@@ -38,7 +26,7 @@ void WatchForSetup() {
         while (cmap is null) {
             yield();
         }
-        print("cmap not null");
+        dev_trace("cmap not null");
         yield();
         while (!uiPopulated) {
             yield();
@@ -48,14 +36,15 @@ void WatchForSetup() {
             yield();
             TryManialinkSetup();
         }
-        if (targetSH is null) continue;
-        print("ML hook set up");
+        if (targetSH is null) continue;  // restart if we didn't get targetSH properly
+        dev_trace("ML hook set up");
         yield();
         // wait for cmap to not exist
         while (cmap !is null) {
             yield();
+            if (targetSH is null) continue;  // restart if we lose targetSH
         }
-        print("cmap is null");
+        dev_trace("cmap is null");
     }
 }
 
@@ -97,46 +86,6 @@ main() {
 }
 --></script>""";
     @targetSH = cast<CSmArenaInterfaceManialinkScripHandler>(layer.LocalPage.ScriptHandler);
-}
-
-class CustomEvent {
-    wstring type;
-    MwFastBuffer<wstring> data;
-
-    CustomEvent(const string &in type, string[] &in data = {}) {
-        this.type = wstring(type);
-        for (uint i = 0; i < data.Length; i++) {
-            auto item = data[i];
-            this.data.Add(wstring(item));
-        }
-    }
-
-    const string ToString() {
-        string dataStr = "{";
-        for (uint i = 0; i < data.Length; i++) {
-            dataStr += "'" + data[i] + "', ";
-        }
-        dataStr += "}";
-        return "CE(" + type + ", " + dataStr + ")";
-    }
-}
-
-void Render() {
-    if (UI::Begin("ghost test button")) {
-        if (UI::Button("run ghost test")) {
-            RunGhostTest();
-        }
-        if (UI::Button("run ghost test async")) {
-            startnew(RunGhostTest);
-        }
-        if (UI::Button("change opponents")) {
-            eventQueue.InsertLast(CustomEvent("RaceMenuEvent_ChangeOpponents"));
-        }
-        if (UI::Button("playmap-endracemenu-save-replay")) {
-            eventQueue.InsertLast(CustomEvent("playmap-endracemenu-save-replay"));
-        }
-    }
-    UI::End();
 }
 
 CGameManiaAppPlayground@ get_cmap() {
@@ -266,27 +215,24 @@ void SendEvents_RunOnlyWhenSafe() {
 }
 
 bool _LayerCustomEvent(CMwStack &in stack, CMwNod@ nod) {
-    return true;
-    auto data = stack.CurrentBufferWString();
+    if (!EventInspector::g_capturing) return true;
     wstring type = stack.CurrentWString(1);
-    print("LayerCustomEvent on nod: " + nod.IdName + " of type: " + type);
-    for (uint i = 0; i < data.Length; i++) {
-        auto item = data[i];
-        print(item);
-    }
+    auto data = stack.CurrentBufferWString();
+    EventInspector::CaptureEvent(type, data, "LayerCE");
     return true;
+    // print("LayerCustomEvent on nod: " + nod.IdName + " of type: " + type);
+    // for (uint i = 0; i < data.Length; i++) {
+    //     auto item = data[i];
+    //     print(item);
+    // }
+    // return true;
 }
 
 bool _SendCustomEvent(CMwStack &in stack, CMwNod@ nod) {
-    return true;
+    if (!EventInspector::g_capturing) return true;
     wstring type = stack.CurrentWString(1);
-    // if (string(type) == "AngelScript_Hook") {return true;}
     auto data = stack.CurrentBufferWString();
-    print("SendCustomEvent on nod: " + nod.IdName + " of type: " + type);
-    for (uint i = 0; i < data.Length; i++) {
-        auto item = data[i];
-        print(item);
-    }
+    EventInspector::CaptureEvent(type, data, "PG.SendCE");
     return true;
 }
 
@@ -298,56 +244,45 @@ CGameManialinkPage@ thePage;
 bool noIntercept = false;
 
 bool _SendCustomEventSH(CMwStack &in stack, CMwNod@ nod) {
-    if (noIntercept) return true;
     wstring type = stack.CurrentWString(1);
+    auto data = stack.CurrentBufferWString();
+    EventInspector::CaptureEvent(type, data, (noIntercept ? "[AS] " : "") + "SH.SendCE");
+    if (noIntercept) return true;
     if (string(type) != "AngelScript_Hook") {return true;}
     if (targetSH !is null && targetSH.Page !is null)
         SendEvents_RunOnlyWhenSafe();
     return false;
-    if (false) {
-        auto data = stack.CurrentBufferWString();
-        if (nod.IdName.Length <= 0) {
-            nod.IdName = "SH-" + (++countShNods);
-        }
-        print("ScriptHandler.SendCustomEvent on nod: " + nod.IdName + " of type: " + type);
-        print("Same as last nod? " + (@nod == @lastNod ? "yes" : "no"));
-        print("Same as target script handler? " + (@nod == @targetSH ? "yes" : "no"));
-        if (true || string(type) == "TMxSM_Race_Record_ToggleGhost") {
-            print("Is nod CSmArenaInterfaceManialinkScripHandler?");
-            print(cast<CSmArenaInterfaceManialinkScripHandler>(nod) is null ? "no" : "yes");
-            if (cast<CSmArenaInterfaceManialinkScripHandler>(nod) !is null) {
-                // if (updateLastNod) {
-                    @lastNod = cast<CSmArenaInterfaceManialinkScripHandler>(nod);
-                    if (@nod == @targetSH && lastNod.Page !is null) {
-                        @thePage = lastNod.Page;
-                    }
-                // }
-                print(".Page is null? " + (lastNod.Page is null ? "yes" : "no"));
-                print(".PageIsVisible? " + (lastNod.PageIsVisible ? "yes" : "no"));
-                print(".PageAlwaysUpdateScript? " + (lastNod.PageAlwaysUpdateScript ? "yes" : "no"));
-            }
-            print("Is nod CGameScriptHandlerPlaygroundInterface?");
-            print(cast<CGameScriptHandlerPlaygroundInterface>(nod) is null ? "no" : "yes");
-            print("Is nod CGameManialinkScriptHandler?");
-            print(cast<CGameManialinkScriptHandler>(nod) is null ? "no" : "yes");
-        }
-        for (uint i = 0; i < data.Length; i++) {
-            auto item = data[i];
-            print(item);
-        }
-    }
-    return false;
-}
-
-
-bool _Ghost_Add(CMwStack &in stack) {
-    auto timeOffset = stack.CurrentInt();
-    auto isGhostLayer = stack.CurrentBool(1);
-    auto ghost = cast<CGameGhostScript>(stack.CurrentNod(2));
-    // print("Ghost_Add on nod: " + nod.IdName + " isGhostLayer? " + (isGhostLayer ? 't' : 'f') + " timeOffset: " + timeOffset);
-    // for (uint i = 0; i < data.Length; i++) {
-    //     auto item = data[i];
-    //     print(item);
+    // if (false) {
+    //     auto data = stack.CurrentBufferWString();
+    //     if (nod.IdName.Length <= 0) {
+    //         nod.IdName = "SH-" + (++countShNods);
+    //     }
+    //     print("ScriptHandler.SendCustomEvent on nod: " + nod.IdName + " of type: " + type);
+    //     print("Same as last nod? " + (@nod == @lastNod ? "yes" : "no"));
+    //     print("Same as target script handler? " + (@nod == @targetSH ? "yes" : "no"));
+    //     if (true || string(type) == "TMxSM_Race_Record_ToggleGhost") {
+    //         print("Is nod CSmArenaInterfaceManialinkScripHandler?");
+    //         print(cast<CSmArenaInterfaceManialinkScripHandler>(nod) is null ? "no" : "yes");
+    //         if (cast<CSmArenaInterfaceManialinkScripHandler>(nod) !is null) {
+    //             // if (updateLastNod) {
+    //                 @lastNod = cast<CSmArenaInterfaceManialinkScripHandler>(nod);
+    //                 if (@nod == @targetSH && lastNod.Page !is null) {
+    //                     @thePage = lastNod.Page;
+    //                 }
+    //             // }
+    //             print(".Page is null? " + (lastNod.Page is null ? "yes" : "no"));
+    //             print(".PageIsVisible? " + (lastNod.PageIsVisible ? "yes" : "no"));
+    //             print(".PageAlwaysUpdateScript? " + (lastNod.PageAlwaysUpdateScript ? "yes" : "no"));
+    //         }
+    //         print("Is nod CGameScriptHandlerPlaygroundInterface?");
+    //         print(cast<CGameScriptHandlerPlaygroundInterface>(nod) is null ? "no" : "yes");
+    //         print("Is nod CGameManialinkScriptHandler?");
+    //         print(cast<CGameManialinkScriptHandler>(nod) is null ? "no" : "yes");
+    //     }
+    //     for (uint i = 0; i < data.Length; i++) {
+    //         auto item = data[i];
+    //         print(item);
+    //     }
     // }
-    return true;
+    // return false;
 }

@@ -1,3 +1,4 @@
+#if DEV
 void RenderMenuMainExploreNods() {
     if (UI::BeginMenu(Icons::Map + " Explore Nods")) {
         RM_Nods();
@@ -16,3 +17,4 @@ void RM_Nods() {
         ExploreNod(cmap);
     }
 }
+#endif

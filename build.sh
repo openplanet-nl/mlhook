@@ -7,6 +7,8 @@ set -e
 # ./build.sh [dev|release]
 # Defaults to `dev` build mode.
 
+PLUGINS_DIR=${PLUGINS_DIR:-$HOME/win/OpenplanetNext/Plugins}
+
 # https://greengumdrops.net/index.php/colorize-your-bash-scripts-bash-color-library/
 source ./vendor/_colors.bash
 
@@ -51,13 +53,12 @@ for pluginSrc in ${pluginSources[@]}; do
 
   # remove parens, replace spaces with dashes, and uppercase characters with lowercase ones
   # => `Never Give Up (Dev)` becomes `never-give-up-dev`
-  PLUGIN_NAME=$(echo "$PLUGIN_PRETTY_NAME" | tr -d '(),;'\''"' | tr 'A-Z ' 'a-z-')
+  PLUGIN_NAME=$(echo "$PLUGIN_PRETTY_NAME" | tr -d '(),;&'\''"' | tr 'A-Z ' 'a-z-')
   # echo $PLUGIN_NAME
   _colortext16 green "✅ Output file/folder name: ${PLUGIN_NAME}"
 
   BUILD_NAME=$PLUGIN_NAME-$(date +%s).zip
   RELEASE_NAME=$PLUGIN_NAME-$PLUGIN_VERSION.op
-  PLUGINS_DIR=${PLUGINS_DIR:-$HOME/win/OpenplanetNext/Plugins}
   PLUGIN_DEV_LOC=$PLUGINS_DIR/$PLUGIN_NAME
   PLUGIN_RELEASE_LOC=$PLUGINS_DIR/$RELEASE_NAME
 
