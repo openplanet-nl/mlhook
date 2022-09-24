@@ -1,8 +1,12 @@
 [meta]
-name     = "Manialink Integration Hook & Event Inspector"
+name     = "ML Hook & Event Inspector"
 author   = "XertroV"
 category = "Utilities"
 version  = "0.1.0"
 
 [script]
 #__DEFINES__
+
+exports = [ "Export.as" ] # no src/ prefix b/c of build.sh
+shared_exports = [ "ExportShared.as" ] # no src/ prefix b/c of build.sh
+# dependencies = [ 'MLHook' ]

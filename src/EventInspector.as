@@ -14,9 +14,9 @@ namespace EventInspector {
 #endif
     bool g_capturing = false;
 
-    void CaptureEvent(wstring &in type, MwFastBuffer<wstring> &in data, const string &in source) {
+    void CaptureEvent(wstring &in type, MwFastBuffer<wstring> &in data, const string &in source, CGameUILayer@ layer = null) {
         if (!g_capturing) return;
-        auto event = CustomEvent(type, data, source);
+        auto event = CustomEvent(type, data, source, layer);
         if (events.Length > 0) {
             auto lastEvent = events[events.Length - 1];
             if (lastEvent == event) {
@@ -76,7 +76,7 @@ namespace EventInspector {
     // draw events and toggle capture
     void RenderEventInspectorWindow() {
         if (!g_windowVisible) return;
-        UI::SetNextWindowSize(1200, 500, UI::Cond::Appearing); //FirstUseEver
+        UI::SetNextWindowSize(1200, 500, UI::Cond::FirstUseEver); // Appearing
         if (UI::Begin("Manialink Event Inspector", g_windowVisible)) {
             // capture/clear and legend
 
@@ -143,13 +143,13 @@ namespace EventInspector {
                 UI::TableSetupColumn("Data", UI::TableColumnFlags::WidthStretch);
                 UI::TableSetupColumn("Source", UI::TableColumnFlags::WidthFixed, 120);
                 UI::TableSetupColumn("Repeats", UI::TableColumnFlags::WidthFixed, 50);
-                UI::TableSetupColumn("Actions", UI::TableColumnFlags::WidthFixed, 175);
+                UI::TableSetupColumn("Actions", UI::TableColumnFlags::WidthFixed, 230);
                 UI::TableHeadersRow();
 
                 UI::ListClipper clipper(filteredEvents.Length);
                 while (clipper.Step()) {
                     for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++) {
-                        auto event = filteredEvents[i];
+                        auto event = filteredEvents[filteredEvents.Length - i - 1];
                         UI::PushID(event);  // neat; didn't know about this
                         UI::TableNextRow();
 
@@ -180,6 +180,13 @@ namespace EventInspector {
                         UI::SameLine();
                         if (UI::Button(Icons::Clipboard + " All")) {
                             IO::SetClipboard(event.ToString());
+                        }
+                        if (event.layer !is null) {
+                            UI::SameLine();
+                            if (UI::Button(Icons::Cube + " Layer Nod")) {
+                                ExploreNod(event.layer);
+                            }
+                            AddSimpleTooltip("Opens the layer in the Nod Explorer");
                         }
 
                         UI::PopID();

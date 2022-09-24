@@ -3,20 +3,30 @@ bool Setting_DemoEnabled = false;
 
 void RenderDemoUI() {
     if (!Setting_DemoEnabled) return;
-    if (UI::Begin("ghost test button", Setting_DemoEnabled, UI::WindowFlags::AlwaysAutoResize)) {
-        if (UI::Button("run ghost test")) {
-            RunGhostTest();
+    if (UI::Begin("ML to AS Hook Demo", Setting_DemoEnabled, UI::WindowFlags::AlwaysAutoResize | UI::WindowFlags::NoCollapse)) {
+        UI::Text("Manialink Hook Demo");
+        UI::Separator();
+
+        UI::Text("Add a selection of ghosts.");
+        UI::Text("Note: this is done\\$5ad in AngelScript\\$z via .SendCustomEvent.");
+        if (!Permissions::PlayRecords()) {
+            UI::Text("\\$f51Demo UI requires club access since it spawns ghosts.");
+        } else {
+            if (UI::Button("run ghost test")) {
+                RunGhostTest();
+            }
+            if (UI::Button("run ghost test async")) {
+                startnew(RunGhostTest);
+            }
         }
-        if (UI::Button("run ghost test async")) {
-            startnew(RunGhostTest);
-        }
+        UI::Separator();
+        UI::Text("In solo mode, e.g., campaign");
         if (UI::Button("change opponents")) {
-            eventQueue.InsertLast(CustomEvent("RaceMenuEvent_ChangeOpponents"));
+            MLHook::Queue_SH_SendCustomEvent("RaceMenuEvent_ChangeOpponents");
         }
-        if (UI::Button("playmap-endracemenu-save-replay")) {
-            eventQueue.InsertLast(CustomEvent("playmap-endracemenu-save-replay"));
+        if (UI::Button("save replay (only from menus where it's shown)")) {
+            MLHook::Queue_SH_SendCustomEvent("playmap-endracemenu-save-replay");
         }
-        if (UI::Button("Close window")) { Setting_DemoEnabled = false; }
     }
     UI::End();
 }

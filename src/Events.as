@@ -5,6 +5,7 @@ class CustomEvent {
     string source;
     private uint _time = Time::Stamp;
     uint repeatCount = 0;  // for recording repeats during capturing
+    CGameUILayer@ layer;
 
     // no source -- from angelscript code
     CustomEvent(const string &in type, string[] &in data = {}) {
@@ -16,13 +17,14 @@ class CustomEvent {
     }
 
     // must have a source, from a capture source
-    CustomEvent(wstring &in type, MwFastBuffer<wstring> &in data, const string &in source) {
+    CustomEvent(wstring &in type, MwFastBuffer<wstring> &in data, const string &in source, CGameUILayer@ layer = null) {
         this.type = wstring(type);
         this.source = source;
         for (uint i = 0; i < data.Length; i++) {
             auto item = data[i];
             this.data.Add(item);
         }
+        @this.layer = layer;
     }
 
     const string ToString(bool justData = false) {
