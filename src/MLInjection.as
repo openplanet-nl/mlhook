@@ -29,12 +29,23 @@ class InjectionSpec {
 }
 
 array<InjectionSpec@> CMAP_InjectQueue = {};
+array<InjectionSpec@> CMAP_CurrentInjections = {};
 
 void RunPendingInjections() {
     if (cmap is null || cmap.UILayers.Length < 10) return;
     while (CMAP_InjectQueue.Length > 0) {
-        InjectIfNotPresent(CMAP_InjectQueue[CMAP_InjectQueue.Length - 1]);
+        auto spec = CMAP_InjectQueue[CMAP_InjectQueue.Length - 1];
+        InjectIfNotPresent(spec);
+        CMAP_CurrentInjections.InsertLast(spec);
         CMAP_InjectQueue.RemoveLast();
+    }
+}
+
+void RerunInjectionsOnSetupCoro() {
+    while (!uiPopulated) yield();
+    for (uint i = 0; i < CMAP_CurrentInjections.Length; i++) {
+        auto item = CMAP_CurrentInjections[i];
+        InjectIfNotPresent(item);
     }
 }
 

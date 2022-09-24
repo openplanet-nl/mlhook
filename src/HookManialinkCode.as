@@ -40,6 +40,8 @@ void WatchForSetup() {
         }
         if (targetSH is null) continue;  // restart if we didn't get targetSH properly
         dev_trace("ML hook set up");
+        RerunInjectionsOnSetupCoro();
+        dev_trace("Cached ML injections re-run");
         yield();
         // wait for cmap to not exist
         while (cmap !is null) {
