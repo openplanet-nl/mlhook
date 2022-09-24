@@ -51,6 +51,7 @@ const EMediaScope[] mediaScopes =
     };
 
 void RenderMenuMain() {
+    // return;
     bool enableMenu = LastUsedDfm !is null
         && GetApp().RootMap is null;
 #if DEV
@@ -70,6 +71,7 @@ void RenderMenuMain() {
         UI::EndMenu();
     }
 #if DEV
+    RenderMenuMainExploreNods();
     l.Unlock();
 #endif
 }

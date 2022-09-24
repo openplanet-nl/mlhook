@@ -12,7 +12,7 @@
 >     LibCommonTask_K_Task Task_RetrieveGhost;
 >     LibCommonTask_K_Task Task_RetrieveRecords;
 > }
-> 
+>
 > #Struct LibLeaderboardAPI_K_ResponseFromGetMapTopRankings {
 > 	Text LeaderboardGroupUid;
 > 	LibCampaignStruct_K_MapTopRanking[] TopRankings;
@@ -25,7 +25,7 @@
 > 	Text LeaderboardGroupUid;
 > 	LibCampaignStruct_K_TopScore[] Tops;
 > }
-> 
+>
 > // /* use with declare RecordsClient_K_State Race_Record_State for UI; */
 > #Struct K_State {
 >     Integer SetupUpdate;
@@ -87,7 +87,7 @@
 >     K_RecordGhost SpectatorTargetRecordGhost;
 >     Boolean ManialinkIsInitialized;
 > }
-> 
+>
 15336c15420
 < Void Focus(CMlControl _From, CMlControl _To, CMlFrame _Scroll_Ranking, K_State _State, Boolean _IsMouse, Boolean _ForceFocusUpdate) {
 ---
