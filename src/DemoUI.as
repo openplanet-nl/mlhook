@@ -9,6 +9,7 @@ void RenderDemoUI() {
 
         UI::Text("Add a selection of ghosts.");
         UI::Text("Note: this is done\\$5ad in AngelScript\\$z via .SendCustomEvent.");
+        UI::Text("For best results, use TOTD for 23rd Sept 2022: \\$FC9Mi\\$FDBr\\$FEDro\\$FFFr\\$FC9W\\$FDBo\\$FEDrl\\$FFFd");
         if (!Permissions::PlayRecords()) {
             UI::Text("\\$f51Demo UI requires club access since it spawns ghosts.");
         } else {

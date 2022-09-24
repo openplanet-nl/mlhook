@@ -4,7 +4,7 @@ namespace EventInspector {
     dictionary eventSources;
 
     CustomEvent@[] f_events = {};
-    string f_source;
+    EventSource f_source;
     string f_type;
 
 #if DEV
@@ -14,9 +14,12 @@ namespace EventInspector {
 #endif
     bool g_capturing = false;
 
-    void CaptureEvent(wstring &in type, MwFastBuffer<wstring> &in data, const string &in source, CGameUILayer@ layer = null) {
-        if (!g_capturing) return;
-        auto event = CustomEvent(type, data, source, layer);
+    bool get_ShouldCapture() {
+        // should we only capture when the window is visible?
+        return g_capturing && g_windowVisible;
+    }
+
+    void _RecordCaptured(CustomEvent@ event) {
         if (events.Length > 0) {
             auto lastEvent = events[events.Length - 1];
             if (lastEvent == event) {
@@ -25,46 +28,102 @@ namespace EventInspector {
             }
         }
         events.InsertLast(event);
-        eventSources[event.source] = true;
+        eventSources[tostring(event.source)] = true;
         eventTypes[event.type] = true;
+        _FilterAddEvent(event);
+    }
+
+    void _FilterAddEvent(CustomEvent@ event) {
+        if (_EventMeetsFilterConditions(event)) {
+            f_events.InsertLast(event);
+        }
+    }
+
+    void CaptureEvent(wstring &in type, MwFastBuffer<wstring> &in data, EventSource &in source, const string &in annotation = "", CGameUILayer@ layer = null) {
+        if (!ShouldCapture) return;
+        auto event = CustomEvent(type, data, source, annotation, layer);
+        _RecordCaptured(event);
+    }
+
+    void CaptureMlScriptEvent(CGameManialinkScriptEvent@ event) {
+        if (!ShouldCapture) return;
+        string[] data = {tostring(event.KeyCode), event.KeyName, event.CharPressed, event.ControlId, tostring(event.MenuNavAction), event.IsActionAutoRepeat ? 't' : 'f', event.CustomEventType, FastBufferWStringToString(event.CustomEventData), event.PluginCustomEventType, FastBufferWStringToString(event.PluginCustomEventData)};
+        auto ce = CustomEvent("CGameManialinkScriptEvent::EType::" + tostring(event.Type), ArrStringToFastBufferWString(data), EventSource::ML_SE);
+        _RecordCaptured(ce);
+    }
+
+    // todo: actually capture some stuff
+    void CaptureMAScriptEvent(CGameManiaAppScriptEvent@ event) {
+        if (!ShouldCapture) return;
+        // event.ControlId, tostring(event.MenuNavAction),
+        string[] data = {tostring(event.KeyCode), event.KeyName, event.CustomEventType, FastBufferWStringToString(event.CustomEventData), event.ExternalEventType, FastBufferWStringToString(event.ExternalEventData), "EMenuNavAction::" + tostring(event.MenuNavAction), event.IsActionAutoRepeat ? 't' : 'f'};
+        auto ce = CustomEvent("CGameManiaAppScriptEvent::EType::" + tostring(event.Type), ArrStringToFastBufferWString(data), EventSource::MA_SE, "", event.CustomEventLayer);
+        _RecordCaptured(ce);
+    }
+
+    // todo: doesn't seem to capture anything... maybe wrong point in maniascript execution flow
+    void CaptureMAPGScriptEvent(CGameManiaAppPlaygroundScriptEvent@ event) {
+        if (!ShouldCapture) return;
+        string[] data = {event.PlaygroundScriptEventType, FastBufferWStringToString(event.PlaygroundScriptEventData),
+            (event.Ghost is null) ? "Ghost(null)" : ("Ghost(id=" + event.Ghost.Id.Value + ", Nickname=\"" + event.Ghost.Nickname + "\", ...(todo)...)"),
+            "GameplaySpecialType::" + tostring(event.GameplaySpecialType),
+            "GameplayTurboRoulette::" + tostring(event.GameplayTurboRoulette),
+            "RaceWaypointTime=" + event.RaceWaypointTime,
+            "DiffWithBestRace=" + event.DiffWithBestRace,
+            "RaceWaypointCount=" + event.RaceWaypointCount,
+            "RaceWaypointIndex=" + event.RaceWaypointIndex,
+            tostring(event.KeyCode), event.KeyName, event.CustomEventType, FastBufferWStringToString(event.CustomEventData), event.ExternalEventType, FastBufferWStringToString(event.ExternalEventData), "EMenuNavAction::" + tostring(event.MenuNavAction), event.IsActionAutoRepeat ? 't' : 'f'};
+        auto ce = CustomEvent("PlaygroundType::" + tostring(event.PlaygroundType), ArrStringToFastBufferWString(data), EventSource::MAPG_SE, "", event.CustomEventLayer);
+        _RecordCaptured(ce);
+    }
+
+    // todo: doesn't seem to capture anything... maybe wrong point in maniascript execution flow
+    void CaptureInputScriptEvent(CInputScriptEvent@ event) {
+        if (!ShouldCapture) return;
+        string[] data = {"EButton::" + tostring(event.Button),
+            tostring(event.KeyCode), event.KeyName, event.IsAutoRepeat ? 't' : 'f'};
+        auto ce = CustomEvent("CInputScriptEvent::EType::" + tostring(event.Type), ArrStringToFastBufferWString(data), EventSource::InputSE, "");
+        _RecordCaptured(ce);
     }
 
     void ResetEventInspector() {
-        events.RemoveRange(0, events.Length-1);
+        events.RemoveRange(0, events.Length);
         eventTypes.DeleteAll();
         eventSources.DeleteAll();
-        f_source = "";
+        f_source = EventSource::Any;
         f_type = "";
-        f_events.RemoveRange(0, f_events.Length-1);
+        f_events.RemoveRange(0, f_events.Length);
+    }
+
+    bool get_IsFilterActive() {
+        return false
+            || f_source != EventSource::Any
+            || f_type.Length > 0
+            ;
     }
 
     array<CustomEvent@> get_filteredEvents() {
-        if (f_events.Length == 0)
+        if (!IsFilterActive)
             return events;
         return f_events;
     }
 
-    void UpdateFilterSource() {
+    bool _EventMeetsFilterConditions(CustomEvent@ event) {
+        // bool ret = true;
+        if (f_type != "" && !string(event.type).Contains(f_type)) return false;
+        if (f_source != EventSource::Any && event.source != f_source) return false;
+        return true;
+    }
+
+    void UpdateFilter() {
         CustomEvent@[] tmp = {};
         for (uint i = 0; i < events.Length; i++) {
             auto item = events[i];
-            if (item.source == f_source)
+            if (_EventMeetsFilterConditions(item))
                 tmp.InsertLast(item);
         }
         f_events = tmp;
     }
-
-    void UpdateFilterType() {
-        CustomEvent@[] tmp = {};
-        for (uint i = 0; i < events.Length; i++) {
-            auto item = events[i];
-            if (string(item.type).Contains(f_type))
-                tmp.InsertLast(item);
-        }
-        f_events = tmp;
-    }
-
-
 
     void RenderEventInspectorMenuItem() {
         if (UI::MenuItem("\\$2f8" + Icons::ListAlt + "\\$z Event Inspector", "", g_windowVisible)) {
@@ -88,7 +147,7 @@ namespace EventInspector {
             UI::SameLine();
             UI::Dummy(vec2(20, 0));
             UI::SameLine();
-            UI::Text("Source Legend:  CE = CustomEvent  |  SH = ScriptHandler  |  [AS] = from Anglescript code.");
+            UI::Text("Source Legend:  CE = CustomEvent  |  SH = ScriptHandler  |  SE = ScriptEvent |  ML = Manialink  |  MA = ManiaApp  |  [AS] = from Anglescript code.");
 
             // filters
 
@@ -99,11 +158,11 @@ namespace EventInspector {
             UI::SetNextItemWidth(200);
             bool f_type_changed = false;
             f_type = UI::InputText("##f_type", f_type, f_type_changed);
-            if (f_type_changed) UpdateFilterType();
+            if (f_type_changed) UpdateFilter();
             UI::SameLine();
             if (UI::Button(Icons::Times + "##f_type")) {
                 f_type = "";
-                UpdateFilterType();
+                UpdateFilter();
             }
 
             // UI::SameLine();
@@ -114,25 +173,25 @@ namespace EventInspector {
             UI::SetCursorPos(cPos + vec2(100, 0));
             bool f_source_changed = false;
             UI::SetNextItemWidth(200);
-            if (UI::BeginCombo("##f_source", f_source == "" ? "<None>" : f_source)) {
-                if (UI::Selectable("<None>", "" == f_source)) {
-                    f_source = "";
-                    UpdateFilterSource();
+            if (UI::BeginCombo("##f_source", f_source == EventSource::Any ? "<Any/All>" : EventSourceToString(f_source))) {
+                if (UI::Selectable("<Any/All>", EventSource::Any == f_source)) {
+                    f_source = EventSource::Any;
+                    UpdateFilter();
                 }
-                auto eventSourceKeys = eventSources.GetKeys();
-                for (uint i = 0; i < eventSourceKeys.Length; i++) {
-                    auto item = eventSourceKeys[i];
-                    if (UI::Selectable(item, item == f_source)) {
+                // start at 1 to skip any/all option
+                for (uint i = 1; i < AllEventSources.Length; i++) {
+                    auto item = AllEventSources[i];
+                    if (UI::Selectable(EventSourceToString(item), item == f_source)) {
                         f_source = item;
-                        UpdateFilterSource();
+                        UpdateFilter();
                     }
                 }
                 UI::EndCombo();
             }
             UI::SameLine();
             if (UI::Button(Icons::Times + "##f_source")) {
-                f_source = "";
-                UpdateFilterSource();
+                f_source = EventSource::Any;
+                UpdateFilter();
             }
 
             // table
@@ -163,7 +222,7 @@ namespace EventInspector {
                         UI::Text(event.ToString(true));
 
                         UI::TableNextColumn();
-                        UI::Text(event.source);
+                        UI::Text(event.AnnoPrefix + EventSourceToString(event.source));
 
                         UI::TableNextColumn();
                         if (event.repeatCount > 0)
@@ -186,7 +245,7 @@ namespace EventInspector {
                             if (UI::Button(Icons::Cube + " Layer Nod")) {
                                 ExploreNod(event.layer);
                             }
-                            AddSimpleTooltip("Opens the layer in the Nod Explorer");
+                            AddSimpleTooltip("Opens the layer in the Nod Explorer\n\\$f91## Warning. Can crash the game if\nyou don't close the layer tab! ##\\$z");
                         }
 
                         UI::PopID();
