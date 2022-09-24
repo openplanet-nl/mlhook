@@ -22,14 +22,14 @@ void RenderMenu() {
     EventInspector::RenderEventInspectorMenuItem();
 }
 
-void NotifyRefresh(const string &in msg) {
-    UI::ShowNotification("Refresh Media", msg, vec4(.2, .6, .3, .3), 3000);
-}
+// void NotifyRefresh(const string &in msg) {
+//     UI::ShowNotification("Refresh Media", msg, vec4(.2, .6, .3, .3), 3000);
+// }
 
-void NotifyError(const string &in msg) {
-    warn(msg);
-    UI::ShowNotification("Refresh Media", msg, vec4(.9, .6, .1, .5), 7500);
-}
+// void NotifyError(const string &in msg) {
+//     warn(msg);
+//     UI::ShowNotification("Refresh Media", msg, vec4(.9, .6, .1, .5), 7500);
+// }
 
 // game api stuff
 

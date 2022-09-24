@@ -52,6 +52,11 @@ Example: could be used to refresh leaderboards without wiping ghosts. (@nbert)
 
 ##### *(Possible?)* Std Two-way (sync) communication between AngelScript and ManiaScript
 
+##### Future Features?
+
+* Export inspector log as .csv, etc
+* Interface for sending ad-hoc custom events
+
 <!-- todo: better inputs via ML_SE / InputSE? -->
 
 ### Acknowledgements
@@ -62,7 +67,7 @@ This is a non-exhaustive list of those who are owed partial credit and appreciat
 * zer0detail
 * Miss
 * nbert
-(contact @XertroV if someone is missing)
+(contact @XertroV if someone is missing; I know people are, just that I don't know enough of the lore.)
 
 ### About
 
