@@ -3,6 +3,9 @@ CGameDataFileManagerScript@ LastUsedDfm;
 void Main() {
     HookManialinkCode();
     startnew(MainCoro);
+#if DEV
+    startnew(DevRoutines);
+#endif
 }
 
 void MainCoro() {
@@ -49,3 +52,9 @@ CGameManiaAppPlayground@ get_cmap() {
 CInputScriptManager@ get_InputMgr() {
     return cmap.Input;
 }
+
+#if DEV
+void DevRoutines() {
+    startnew(PanicMode::TestPanicMode);
+}
+#endif

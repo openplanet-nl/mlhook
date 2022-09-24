@@ -132,6 +132,8 @@ const string MLHook_DataInjectionAttachId = "MLHook_DataInjection";
 
 void RunQueuedMlDataInjections() {
     if (cmap is null || outboundMlMessages.Length == 0) return;
+    EnsureHooksEstablished();
+    RunPendingInjections();
     auto layer = UpdateLayerWAttachIdOrMake(MLHook_DataInjectionAttachId, GenManialinkPageForOutbound());
     // layer.ManialinkPage = GenManialinkPageForOutbound();
 }

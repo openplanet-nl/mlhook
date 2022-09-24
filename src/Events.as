@@ -3,6 +3,7 @@ enum EventSource
     , LayerCE // LayerCustomEvent
     , PG_SendCE // Playground.SendCustomEvent
     , SH_SendCE // ScriptHandler.SendCustomEvent
+    , PluginCE // SendPluginEvent -> CGameManiaAppScriptEvent? (mb)
     , ML_SE // CGameManialinkScriptEvent
     , MA_SE // todo: CGameManiaAppScriptEvent
     , MAPG_SE // todo: verify CGameManiaAppPlaygroundScriptEvent works
@@ -14,10 +15,23 @@ EventSource[] AllEventSources =
     , EventSource::LayerCE
     , EventSource::PG_SendCE
     , EventSource::SH_SendCE
+    , EventSource::PluginCE
     , EventSource::ML_SE
     , EventSource::MA_SE
     , EventSource::MAPG_SE
     , EventSource::InputSE
+    };
+
+string[] EventSourceLegend =
+    { "Any or Unknown"
+    , "via LayerCustomEvent() (working)"
+    , "via Playground.SendCustomEvent() (working)"
+    , "via ScriptHandler.SendCustomEvent() (working)"
+    , "via CGameEditorMainPlugin.SendPluginEvent() (working? idk)"
+    , "CGameManialinkScriptEvent via ScriptHandler.PendingEvents (note: possibly does not catch all events)"
+    , "CGameManiaAppScriptEvent via ManiaApp.PendingEvents (not working?)"
+    , "CGameManiaAppPlaygroundScriptEvent via ManiaAppPlayground.PendingEvents (not working)"
+    , "CInputScriptEvent via Input.PendingEvents (not working)"
     };
 
 const string EventSourceToString(EventSource es, bool colorize = true) {
@@ -27,6 +41,7 @@ const string EventSourceToString(EventSource es, bool colorize = true) {
         case EventSource::LayerCE: return "\\$db2" + tostring(es) + "\\$z";
         case EventSource::PG_SendCE: return "\\$2d2" + tostring(es) + "\\$z";
         case EventSource::SH_SendCE: return "\\$d2d" + tostring(es) + "\\$z";
+        case EventSource::PluginCE: return "\\$b61" + tostring(es) + "\\$z";
         case EventSource::ML_SE: return "\\$6bf" + tostring(es) + "\\$z";
         case EventSource::MA_SE: return "\\$f22" + tostring(es) + "\\$z";
         case EventSource::MAPG_SE: return "\\$f19" + tostring(es) + "\\$z";
@@ -43,6 +58,7 @@ class CustomEvent {
     private uint _time = Time::Stamp;
     uint repeatCount = 0;  // for recording repeats during capturing
     CGameUILayer@ layer;
+    CGameEditorPluginHandle@ handle;
     string annotation;
 
     // no source -- from angelscript code
@@ -55,7 +71,8 @@ class CustomEvent {
     }
 
     // must have a source, from a capture source
-    CustomEvent(wstring &in type, MwFastBuffer<wstring> &in data, EventSource &in source, const string &in annotation = "", CGameUILayer@ layer = null) {
+    CustomEvent(wstring &in type, MwFastBuffer<wstring> &in data, EventSource &in source, const string &in annotation = "",
+            CGameUILayer@ layer = null, CGameEditorPluginHandle@ handle = null) {
         this.type = wstring(type);
         this.source = source;
         for (uint i = 0; i < data.Length; i++) {
@@ -64,6 +81,7 @@ class CustomEvent {
         }
         this.annotation = annotation;
         @this.layer = layer;
+        @this.handle = handle;
     }
 
     const string ToString(bool justData = false) {

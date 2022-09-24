@@ -57,9 +57,9 @@ void AddSimpleTooltip(const string &in msg) {
 
 // /* padding */
 
-// void VPad() {
-//     UI::Dummy(vec2(0, 2));
-// }
+void VPad() {
+    UI::Dummy(vec2(0, 2));
+}
 
 // void PaddedSep() {
 //     VPad();

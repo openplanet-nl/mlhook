@@ -14,6 +14,7 @@ void HookManialinkCode() {
     Dev::InterceptProc("CGameManiaApp", "LayerCustomEvent", _LayerCustomEvent);
     Dev::InterceptProc("CGameManiaAppPlayground", "SendCustomEvent", _SendCustomEvent);
     Dev::InterceptProc("CGameManialinkScriptHandler", "SendCustomEvent", _SendCustomEventSH);
+    Dev::InterceptProc("CGameEditorMainPlugin", "SendPluginEvent", _SendPluginEvent);
     startnew(WatchForSetup);
 }
 
@@ -21,6 +22,7 @@ void HookManialinkCode() {
 // Repeat so that it is done each time
 void WatchForSetup() {
     while (true) {
+        // if (PanicMode::IsActive) WarnOnPanic;
         yield();
         // wait for cmap to exist
         while (cmap is null) {
@@ -48,20 +50,28 @@ void WatchForSetup() {
     }
 }
 
+// A one-time version of the above
+void EnsureHooksEstablished() {
+    while (cmap is null) yield();
+    while (!uiPopulated) yield();
+    while (!manialinkHooksSetUp) yield();
+    while (targetSH is null) throw('should never happen?');
+}
+
 bool get_uiPopulated() {
     if (cmap is null) return false;
     if (cmap.UILayers.Length < 10) return false;
     return true;
 }
 
-const string _attachId = "AngelScript_CallBack";
+const string ML_Setup_AttachId = "AngelScript_CallBack";
 
 bool get_manialinkHooksSetUp() {
     bool foundCBLayer = false;
     auto layers = cmap.UILayers;
     for (uint i = 0; i < layers.Length; i++) {
         auto layer = layers[i];
-        if (layer.AttachId == _attachId) {
+        if (layer.AttachId == ML_Setup_AttachId) {
             if (targetSH is null) {
                 @targetSH = cast<CSmArenaInterfaceManialinkScripHandler>(layer.LocalPage.ScriptHandler);
             }
@@ -72,17 +82,17 @@ bool get_manialinkHooksSetUp() {
     return foundCBLayer;
 }
 
-const string HookEventName = "AngelScript_Hook";
+const string HookEventName = "MLHook_AngelScript_Trigger";
 
 void TryManialinkSetup() {
     if (manialinkHooksSetUp) return;
     auto layer = cmap.UILayerCreate();
-    layer.AttachId = _attachId;
+    layer.AttachId = ML_Setup_AttachId;
     layer.ManialinkPage = """
 <script><!--
 main() {
     while(True) {
-        SendCustomEvent("AngelScript_Hook", []);
+        SendCustomEvent(""" + '"' + HookEventName + '"' + """, []);
         yield;
     }
 }
@@ -195,6 +205,15 @@ bool _SendCustomEvent(CMwStack &in stack, CMwNod@ nod) {
     wstring type = stack.CurrentWString(1);
     auto data = stack.CurrentBufferWString();
     EventInspector::CaptureEvent(type, data, EventSource::PG_SendCE, (noIntercept ? "AS" : ""));
+    return true;
+}
+
+bool _SendPluginEvent(CMwStack &in stack, CMwNod@ nod) {
+    if (!EventInspector::g_capturing) return true;
+    wstring type = stack.CurrentWString(1);
+    auto data = stack.CurrentBufferWString();
+    CGameEditorPluginHandle@ handle = cast<CGameEditorPluginHandle>(stack.CurrentNod(2));
+    EventInspector::CaptureEvent(type, data, EventSource::PluginCE, (noIntercept ? "AS" : ""), null, handle);
     return true;
 }
 

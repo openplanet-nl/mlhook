@@ -28,6 +28,16 @@ void RenderDemoUI() {
         if (UI::Button("save replay (only from menus where it's shown)")) {
             MLHook::Queue_SH_SendCustomEvent("playmap-endracemenu-save-replay");
         }
+#if DEV
+        UI::Separator();
+        if (UI::Button('test notification')) {
+            // UI::ShowNotification("MLHook Panic Mode", "MLHook encountered a serious error and is terminating for your safety.", vec4(.3, .3, .1, .2));
+            PanicMode::__PanicModeNotification("test notification");
+        }
+        if (UI::Button('test panic mode')) {
+            PanicMode::TestPanicMode();
+        }
+#endif
     }
     UI::End();
 }

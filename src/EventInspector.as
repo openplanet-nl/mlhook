@@ -39,9 +39,9 @@ namespace EventInspector {
         }
     }
 
-    void CaptureEvent(wstring &in type, MwFastBuffer<wstring> &in data, EventSource &in source, const string &in annotation = "", CGameUILayer@ layer = null) {
+    void CaptureEvent(wstring &in type, MwFastBuffer<wstring> &in data, EventSource &in source, const string &in annotation = "", CGameUILayer@ layer = null, CGameEditorPluginHandle@ handle = null) {
         if (!ShouldCapture) return;
-        auto event = CustomEvent(type, data, source, annotation, layer);
+        auto event = CustomEvent(type, data, source, annotation, layer, handle);
         _RecordCaptured(event);
     }
 
@@ -147,11 +147,24 @@ namespace EventInspector {
             UI::SameLine();
             UI::Dummy(vec2(20, 0));
             UI::SameLine();
-            UI::Text("Source Legend:  CE = CustomEvent  |  MA = ManiaApp |  ML = Manialink  |  SE = ScriptEvent  |  SH = ScriptHandler  |  [AS] = from Anglescript code.");
-
+            vec2 cPos = UI::GetCursorPos();
+            UI::TextWrapped("Source Legend:  CE = CustomEvent  |  MA = ManiaApp |  ML = Manialink  | SE = ScriptEvent  |  SH = ScriptHandler  |  [AS] = from Anglescript code.");
+            // go to the line below but line up with the above legend
+            UI::AlignTextToFramePadding();
+            UI::SetCursorPos(UI::GetCursorPos() * vec2(0, 1) + cPos * vec2(1, 0));
+            UI::Text("Types & Description: ");
+            UI::SameLine();
+            for (uint i = 0; i < AllEventSources.Length; i++) {
+                if (i > 0) UI::SameLine();
+                auto es = AllEventSources[i];
+                auto tt = EventSourceLegend[i];
+                UI::Text(EventSourceToString(es));
+                AddSimpleTooltip(tt);
+            }
+            VPad();
             // filters
 
-            vec2 cPos = UI::GetCursorPos();
+            cPos = UI::GetCursorPos();
             UI::AlignTextToFramePadding();
             UI::Text("Filter Type: ");
             UI::SetCursorPos(cPos + vec2(100, 0));
@@ -240,6 +253,8 @@ namespace EventInspector {
                         if (UI::Button(Icons::Clipboard + " All")) {
                             IO::SetClipboard(event.ToString());
                         }
+                        MaybeDrawNodExplorerBtnFor("Layer", event.layer);
+                        MaybeDrawNodExplorerBtnFor("Handle", event.handle);
                         if (event.layer !is null) {
                             UI::SameLine();
                             if (UI::Button(Icons::Cube + " Layer Nod")) {
@@ -255,5 +270,12 @@ namespace EventInspector {
             }
         }
         UI::End();
+    }
+
+    void MaybeDrawNodExplorerBtnFor(const string &in label, CMwNod@ &in nod, bool sameLine = true) {
+        if (sameLine) UI::SameLine();
+        if (nod !is null && UI::Button(Icons::Cube + " " + label + " Nod")) {
+            ExploreNod(nod);
+        }
     }
 }
