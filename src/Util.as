@@ -23,3 +23,12 @@ const string ArrStringToString(const string[] &in ss) {
     }
     return "{" + string::Join(items, ', ') + "}";
 }
+
+
+class StringAccumulator {
+    string[] items = {};
+    StringAccumulator() {}
+    void Add(string item) {
+        items.InsertLast(item);
+    }
+}

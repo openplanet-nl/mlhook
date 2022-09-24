@@ -111,8 +111,11 @@ void RunGhostTest() {
 }
 
 CustomEvent@[] SH_SCE_EventQueue = {};
+CustomEvent@[] SCE_EventQueue = {};
 
 uint lastGameTime = 0;
+
+funcdef void SendEventF(CustomEvent@ event);
 
 void SendEvents_RunOnlyWhenSafe() {
     CheckForPendingEvents();
@@ -122,15 +125,24 @@ void SendEvents_RunOnlyWhenSafe() {
         lastGameTime = gt;
         // CheckForPendingEvents();
         // print("SendEvents_RunOnlyWhenSafe - " + gt);
-        while (SH_SCE_EventQueue.Length > 0) {
-            // cannot do more than one at a time
-            auto ce = SH_SCE_EventQueue[SH_SCE_EventQueue.Length - 1];
-            SH_SCE_EventQueue.RemoveLast();
-            trace('Processing event: ' + ce.ToString());
-            noIntercept = true;
-            targetSH.SendCustomEvent(ce.type, ce.data);
-            noIntercept = false;
-        }
+        _ProcessAllEventsFor(SH_SCE_EventQueue, function(CustomEvent@ event) {
+            targetSH.SendCustomEvent(event.type, event.data);
+        });
+        _ProcessAllEventsFor(SCE_EventQueue, function(CustomEvent@ event) {
+            cmap.SendCustomEvent(event.type, event.data);
+        });
+    }
+}
+
+void _ProcessAllEventsFor(CustomEvent@[]@ &in eventQueue, SendEventF@ funcSendEvent) {
+    while (eventQueue.Length > 0) {
+        // cannot do more than one at a time
+        auto ce = eventQueue[eventQueue.Length - 1];
+        eventQueue.RemoveLast();
+        dev_trace('Processing event: ' + ce.ToString());
+        noIntercept = true;
+        funcSendEvent(ce);
+        noIntercept = false;
     }
 }
 
@@ -168,7 +180,7 @@ bool _LayerCustomEvent(CMwStack &in stack, CMwNod@ nod) {
     auto layer = cast<CGameUILayer>(stack.CurrentNod(2));
     wstring type = stack.CurrentWString(1);
     auto data = stack.CurrentBufferWString();
-    EventInspector::CaptureEvent(type, data, EventSource::LayerCE, "", layer);
+    EventInspector::CaptureEvent(type, data, EventSource::LayerCE, (noIntercept ? "AS" : ""), layer);
     return true;
     // print("LayerCustomEvent on nod: " + nod.IdName + " of type: " + type);
     // for (uint i = 0; i < data.Length; i++) {
@@ -182,7 +194,7 @@ bool _SendCustomEvent(CMwStack &in stack, CMwNod@ nod) {
     if (!EventInspector::g_capturing) return true;
     wstring type = stack.CurrentWString(1);
     auto data = stack.CurrentBufferWString();
-    EventInspector::CaptureEvent(type, data, EventSource::PG_SendCE);
+    EventInspector::CaptureEvent(type, data, EventSource::PG_SendCE, (noIntercept ? "AS" : ""));
     return true;
 }
 
@@ -195,13 +207,16 @@ bool noIntercept = false;
 
 bool _SendCustomEventSH(CMwStack &in stack, CMwNod@ nod) {
     wstring type = stack.CurrentWString(1);
+    string s_type = string(type);
     auto data = stack.CurrentBufferWString();
     EventInspector::CaptureEvent(type, data, EventSource::SH_SendCE, (noIntercept ? "AS" : ""));
-    if (noIntercept) return true;
-    if (string(type) != HookEventName) {return true;}
+    bool is_debug = s_type.StartsWith(MLHook::DebugPrefix);
+    if (noIntercept && !is_debug) return true;
     if (targetSH !is null && targetSH.Page !is null)
         SendEvents_RunOnlyWhenSafe();
-    return false;
+    if (is_debug) return false;
+    if (s_type == HookEventName) {return false;}
+    return true;
 }
 
 

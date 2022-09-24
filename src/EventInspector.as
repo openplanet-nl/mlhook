@@ -147,7 +147,7 @@ namespace EventInspector {
             UI::SameLine();
             UI::Dummy(vec2(20, 0));
             UI::SameLine();
-            UI::Text("Source Legend:  CE = CustomEvent  |  SH = ScriptHandler  |  SE = ScriptEvent |  ML = Manialink  |  MA = ManiaApp  |  [AS] = from Anglescript code.");
+            UI::Text("Source Legend:  CE = CustomEvent  |  MA = ManiaApp |  ML = Manialink  |  SE = ScriptEvent  |  SH = ScriptHandler  |  [AS] = from Anglescript code.");
 
             // filters
 

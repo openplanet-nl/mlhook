@@ -67,6 +67,7 @@ This is a non-exhaustive list of those who are owed partial credit and appreciat
 * zer0detail
 * Miss
 * nbert
+
 (contact @XertroV if someone is missing; I know people are, just that I don't know enough of the lore.)
 
 ### About
@@ -101,3 +102,10 @@ Send `CGameManialinkScriptHandler` Custom Events via:
 ```AngelScript
 MLHook::Queue_SH_SendCustomEvent(const string &in type, string[] &in data = {})
 ```
+
+#### Injection
+
+to recover from compile/syntax error:
+- on script error page, press ctrl+g to get rid of overlay
+- wait for "recovery restart" to come up (press okay when it does)
+- after a second the UI should have reloaded, then you can reload the plugin to try your new changes.

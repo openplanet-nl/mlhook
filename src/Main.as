@@ -2,6 +2,15 @@ CGameDataFileManagerScript@ LastUsedDfm;
 
 void Main() {
     HookManialinkCode();
+    startnew(MainCoro);
+}
+
+void MainCoro() {
+    while (true) {
+        yield();
+        RunPendingInjections();
+        RunQueuedMlDataInjections();
+    }
 }
 
 void Render() {
