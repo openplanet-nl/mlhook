@@ -103,9 +103,14 @@ Send `CGameManialinkScriptHandler` Custom Events via:
 MLHook::Queue_SH_SendCustomEvent(const string &in type, string[] &in data = {})
 ```
 
-#### Injection
+#### ML Script Hierarchy
 
-to recover from compile/syntax error:
+(Note: input from someone more familiar with Maniascript would be appreciated)
+Events seem to
+
+#### Tips re ML Injection
+
+You'll probably to recover from compile/syntax error:
 - on script error page, press ctrl+g to get rid of overlay
 - wait for "recovery restart" to come up (press okay when it does)
 - after a second the UI should have reloaded, then you can reload the plugin to try your new changes.

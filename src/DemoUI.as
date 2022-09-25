@@ -37,7 +37,25 @@ void RenderDemoUI() {
         if (UI::Button('test panic mode')) {
             PanicMode::TestPanicMode();
         }
+        if (UI::Button('test todo')) {
+            NotifyTodo("implement something");
+        }
 #endif
     }
     UI::End();
+}
+
+
+void RunGhostTest() {
+    if (targetSH is null) {
+        UI::ShowNotification("toggle ghost", "targetSH is null == true");
+        return;
+    }
+    SH_SCE_EventQueue.InsertLast(CustomEvent("TMxSM_Race_Record_ToggleGhost", {"da4642f9-6acf-43fe-88b6-b120ff1308ba"}));
+    SH_SCE_EventQueue.InsertLast(CustomEvent("TMxSM_Race_Record_ToggleGhost", {"8d90f6c6-5a03-4fd3-8026-791c4d7404db"}));
+    SH_SCE_EventQueue.InsertLast(CustomEvent("TMxSM_Race_Record_ToggleGhost", {"41122fb7-f264-448e-9660-a418f438e58b"}));
+    SH_SCE_EventQueue.InsertLast(CustomEvent("TMxSM_Race_Record_ToggleGhost", {"1336b019-0d7d-43f7-b227-ff336f8b7140"}));
+    SH_SCE_EventQueue.InsertLast(CustomEvent("TMxSM_Race_Record_ToggleGhost", {"2a13aa7d-992d-4a7c-a3c5-d29b08b7f8cb"}));
+    SH_SCE_EventQueue.InsertLast(CustomEvent("TMxSM_Race_Record_ToggleGhost", {"7ccc9d81-bc43-4faa-b454-46bed6b6d4f5"}));
+    SH_SCE_EventQueue.InsertLast(CustomEvent("TMxSM_Race_Record_ToggleGhost", {"aca96daf-0fda-4496-9887-22e616d8a481"}));
 }

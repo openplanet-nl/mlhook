@@ -124,8 +124,8 @@ const string GenManialinkPageForOutbound() {
         auto qName = keys[i];
         _outboundMsgs += "  declare Text[] " + qName + " for ClientUI;\n";
         StringAccumulator@ sa = cast<StringAccumulator>(msgsFor[qName]);
-        for (uint i = 0; i < sa.items.Length; i++) {
-            auto item = sa.items[i];
+        for (uint j = 0; j < sa.items.Length; j++) {
+            auto item = sa.items[j];
             _outboundMsgs += "  " + qName + ".add(\"" + item + "\");\n";
         }
     }
@@ -134,7 +134,7 @@ const string GenManialinkPageForOutbound() {
     + "declare Integer _Nonce = " + Time::Now + """;
 yield;
 """ + _outboundMsgs + """
-SendCustomEvent("RanInjection", [""^_Nonce]);
+SendCustomEvent("MLHook_Debug_RanInjection", [""^_Nonce]);
 }
 --></script>""");
 }

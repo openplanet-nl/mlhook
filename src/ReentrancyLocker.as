@@ -1,7 +1,5 @@
 // Note: not used atm but maybe soon.
 
-uint lskdjflksjdlfj = 1;
-
 // /*
 // ReentrancyLocker helps avoid reentrancy issues with intercepted calls.
 

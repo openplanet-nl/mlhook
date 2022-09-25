@@ -15,6 +15,22 @@ void HookManialinkCode() {
     Dev::InterceptProc("CGameManiaAppPlayground", "SendCustomEvent", _SendCustomEvent);
     Dev::InterceptProc("CGameManialinkScriptHandler", "SendCustomEvent", _SendCustomEventSH);
     Dev::InterceptProc("CGameEditorMainPlugin", "SendPluginEvent", _SendPluginEvent);
+#if DEV
+    // experimental hooks to see if we can get more events
+    // Dev::InterceptProc("CGameMenuSceneScriptManager", "SceneCreate", _CheckForEvents);
+    // Dev::InterceptProc("CGameManialinkPage", "GetFirstChild", _CheckForEvents);
+    // Dev::InterceptProc("CGameManialinkPage", "GetClassChildren", _CheckForEvents);
+    // Dev::InterceptProc("CGameManialinkFrame", "GetFirstChild", _CheckForEvents);
+    // Dev::InterceptProc("CGameManialinkFrame", "HasClass", _CheckForEvents);
+    // Dev::InterceptProc("CGameManialinkScriptHandler", "IsKeyPressed", _CheckForEvents);
+
+    // these were good:
+    // Dev::InterceptProc("CGameDataFileManagerScript", "Ghost_Release", _CheckForEvents);
+    // Dev::InterceptProc("CGameDataFileManagerScript", "TaskResult_Release", _CheckForEvents);
+    // Dev::InterceptProc("CGameDataFileManagerScript", "ReleaseTaskResult", _CheckForEvents);
+    // Dev::InterceptProc("CGameDataFileManagerScript", "Map_NadeoServices_GetListFromUid", _CheckForEvents);
+    // Dev::InterceptProc("CGameDataFileManagerScript", "Map_NadeoServices_Get", _CheckForEvents);
+#endif
     startnew(WatchForSetup);
 }
 
@@ -84,7 +100,7 @@ bool get_manialinkHooksSetUp() {
     return foundCBLayer;
 }
 
-const string HookEventName = "MLHook_AngelScript_Trigger";
+const string PlaygroundHookEventName = MLHook::EventPrefix + "AngelScript_PG_Trigger";
 
 void TryManialinkSetup() {
     if (manialinkHooksSetUp) return;
@@ -94,7 +110,7 @@ void TryManialinkSetup() {
 <script><!--
 main() {
     while(True) {
-        SendCustomEvent(""" + '"' + HookEventName + '"' + """, []);
+        SendCustomEvent(""" + '"' + PlaygroundHookEventName + '"' + """, []);
         yield;
     }
 }
@@ -104,45 +120,31 @@ main() {
 
 CSmArenaInterfaceManialinkScripHandler@ targetSH;
 
-void RunGhostTest() {
-    if (targetSH is null) {
-        UI::ShowNotification("toggle ghost", "targetSH is null == true");
-        return;
-    }
-    // ExploreNod(lastNod);
-    // ExploreNod(thePage);
-    // @targetSH.Page = thePage; // no set-accessor :(
-    // warn(thePage.ScriptHandler);
-    SH_SCE_EventQueue.InsertLast(CustomEvent("TMxSM_Race_Record_ToggleGhost", {"da4642f9-6acf-43fe-88b6-b120ff1308ba"}));
-    SH_SCE_EventQueue.InsertLast(CustomEvent("TMxSM_Race_Record_ToggleGhost", {"8d90f6c6-5a03-4fd3-8026-791c4d7404db"}));
-    SH_SCE_EventQueue.InsertLast(CustomEvent("TMxSM_Race_Record_ToggleGhost", {"41122fb7-f264-448e-9660-a418f438e58b"}));
-    SH_SCE_EventQueue.InsertLast(CustomEvent("TMxSM_Race_Record_ToggleGhost", {"1336b019-0d7d-43f7-b227-ff336f8b7140"}));
-    SH_SCE_EventQueue.InsertLast(CustomEvent("TMxSM_Race_Record_ToggleGhost", {"2a13aa7d-992d-4a7c-a3c5-d29b08b7f8cb"}));
-    SH_SCE_EventQueue.InsertLast(CustomEvent("TMxSM_Race_Record_ToggleGhost", {"7ccc9d81-bc43-4faa-b454-46bed6b6d4f5"}));
-    SH_SCE_EventQueue.InsertLast(CustomEvent("TMxSM_Race_Record_ToggleGhost", {"aca96daf-0fda-4496-9887-22e616d8a481"}));
-}
-
 CustomEvent@[] SH_SCE_EventQueue = {};
-CustomEvent@[] SCE_EventQueue = {};
+CustomEvent@[] PG_SCE_EventQueue = {};
 
 uint lastGameTime = 0;
 
 funcdef void SendEventF(CustomEvent@ event);
 
 void SendEvents_RunOnlyWhenSafe() {
-    CheckForPendingEvents();
-    if (targetSH is null || targetSH.Page is null) return;
-    uint gt = targetSH.GameTime;
-    if (gt > lastGameTime) {
-        lastGameTime = gt;
-        // CheckForPendingEvents();
-        // print("SendEvents_RunOnlyWhenSafe - " + gt);
-        _ProcessAllEventsFor(SH_SCE_EventQueue, function(CustomEvent@ event) {
-            targetSH.SendCustomEvent(event.type, event.data);
-        });
-        _ProcessAllEventsFor(SCE_EventQueue, function(CustomEvent@ event) {
-            cmap.SendCustomEvent(event.type, event.data);
-        });
+    if (PanicMode::IsActive) return;
+    try {
+        CheckForPendingEvents();
+        if (targetSH is null || targetSH.Page is null) return;
+        uint gt = targetSH.GameTime;
+        if (gt > lastGameTime) {
+            lastGameTime = gt;
+            // print("SendEvents_RunOnlyWhenSafe - " + gt);
+            _ProcessAllEventsFor(SH_SCE_EventQueue, function(CustomEvent@ event) {
+                targetSH.SendCustomEvent(event.type, event.data);
+            });
+            _ProcessAllEventsFor(PG_SCE_EventQueue, function(CustomEvent@ event) {
+                cmap.SendCustomEvent(event.type, event.data);
+            });
+        }
+    } catch {
+        PanicMode::Activate("Exception in SendEvents_RunOnlyWhenSafe: " + getExceptionInfo());
     }
 }
 
@@ -158,9 +160,15 @@ void _ProcessAllEventsFor(CustomEvent@[]@ &in eventQueue, SendEventF@ funcSendEv
     }
 }
 
+uint lastPendingCheck = 0;
 void CheckForPendingEvents() {
+    if (noIntercept) return;
+    if (lastPendingCheck == Time::Now) {
+        return;
+    }
+    lastPendingCheck = Time::Now;
     // CGameManialinkScriptEvent
-    if (targetSH.PendingEvents.Length > 0) {
+    if (targetSH !is null && targetSH.PendingEvents.Length > 0) {
         dev_trace("targetSH.PendingEvents.Length: " + targetSH.PendingEvents.Length);
         for (uint i = 0; i < targetSH.PendingEvents.Length; i++) {
             CGameManialinkScriptEvent@ item = targetSH.PendingEvents[i];
@@ -169,7 +177,7 @@ void CheckForPendingEvents() {
     }
     // todo: CGameManiaAppScriptEvent excluding CGameManiaAppPlaygroundScriptEvent
     // CGameManiaAppPlaygroundScriptEvent
-    if (cmap.PendingEvents.Length > 0) {
+    if (cmap !is null && cmap.PendingEvents.Length > 0) {
         dev_trace("cmap.PendingEvents.Length: " + cmap.PendingEvents.Length);
         for (uint i = 0; i < cmap.PendingEvents.Length; i++) {
             CGameManiaAppPlaygroundScriptEvent@ item = cmap.PendingEvents[i];
@@ -178,45 +186,75 @@ void CheckForPendingEvents() {
     }
     // CGameScriptChatEvent -- chat managers seem always null
     // CInputScriptEvent
-    if (InputMgr.PendingEvents.Length > 0) {
+    if (InputMgr !is null && InputMgr.PendingEvents.Length > 0) {
         dev_trace("InputMgr.PendingEvents.Length: " + InputMgr.PendingEvents.Length);
         for (uint i = 0; i < InputMgr.PendingEvents.Length; i++) {
             CInputScriptEvent@ item = InputMgr.PendingEvents[i];
             EventInspector::CaptureInputScriptEvent(item);
         }
     }
+    // CGameManiaAppTitle / CGameManiaAppScriptEvent -- works!
+    if (mcma !is null && mcma.PendingEvents.Length > 0 && mcma.PendingEvents.Length != lastMcmaPendingLen) {
+        lastMcmaPendingLen = mcma.PendingEvents.Length;
+        dev_trace("mcma.PendingEvents.Length: " + mcma.PendingEvents.Length);
+        for (uint i = 0; i < mcma.PendingEvents.Length; i++) {
+            CGameManiaAppScriptEvent@ item = mcma.PendingEvents[i];
+            EventInspector::CaptureMAScriptEvent(item);
+        }
+    }
 }
 
+uint lastMcmaPendingLen = 0;
+
+string lastLayerType = "";
+
 bool _LayerCustomEvent(CMwStack &in stack, CMwNod@ nod) {
-    if (!EventInspector::g_capturing) return true;
-    auto layer = cast<CGameUILayer>(stack.CurrentNod(2));
-    wstring type = stack.CurrentWString(1);
-    auto data = stack.CurrentBufferWString();
-    EventInspector::CaptureEvent(type, data, EventSource::LayerCE, (noIntercept ? "AS" : ""), layer);
-    return true;
-    // print("LayerCustomEvent on nod: " + nod.IdName + " of type: " + type);
-    // for (uint i = 0; i < data.Length; i++) {
-    //     auto item = data[i];
-    //     print(item);
-    // }
-    // return true;
+    if (PanicMode::IsActive) return true;
+    try {
+        CheckForPendingEvents();
+        if (!EventInspector::g_capturing) return true;
+        auto layer = cast<CGameUILayer>(stack.CurrentNod(2));
+        wstring type = stack.CurrentWString(1);
+        if (type == lastLayerType) return true; // too many events? many duplicates
+        lastLayerType = type;
+        auto data = stack.CurrentBufferWString();
+        EventInspector::CaptureEvent(type, data, EventSource::LayerCE, (noIntercept ? "AS" : ""), layer);
+        return true;
+    } catch {
+        PanicMode::Activate("Exception in _LayerCustomEvent: " + getExceptionInfo());
+        return true;
+    }
 }
 
 bool _SendCustomEvent(CMwStack &in stack, CMwNod@ nod) {
-    if (!EventInspector::g_capturing) return true;
-    wstring type = stack.CurrentWString(1);
-    auto data = stack.CurrentBufferWString();
-    EventInspector::CaptureEvent(type, data, EventSource::PG_SendCE, (noIntercept ? "AS" : ""));
-    return true;
+    if (PanicMode::IsActive) return true;
+    try {
+        CheckForPendingEvents();
+        if (!EventInspector::g_capturing) return true;
+        wstring type = stack.CurrentWString(1);
+        auto data = stack.CurrentBufferWString();
+        EventInspector::CaptureEvent(type, data, EventSource::PG_SendCE, (noIntercept ? "AS" : ""));
+        return true;
+    } catch {
+        PanicMode::Activate("Exception in _SendCustomEvent: " + getExceptionInfo());
+        return true;
+    }
 }
 
 bool _SendPluginEvent(CMwStack &in stack, CMwNod@ nod) {
-    if (!EventInspector::g_capturing) return true;
-    wstring type = stack.CurrentWString(1);
-    auto data = stack.CurrentBufferWString();
-    CGameEditorPluginHandle@ handle = cast<CGameEditorPluginHandle>(stack.CurrentNod(2));
-    EventInspector::CaptureEvent(type, data, EventSource::PluginCE, (noIntercept ? "AS" : ""), null, handle);
-    return true;
+    if (PanicMode::IsActive) return true;
+    try {
+        CheckForPendingEvents();
+        if (!EventInspector::g_capturing) return true;
+        wstring type = stack.CurrentWString(1);
+        auto data = stack.CurrentBufferWString();
+        CGameEditorPluginHandle@ handle = cast<CGameEditorPluginHandle>(stack.CurrentNod(2));
+        EventInspector::CaptureEvent(type, data, EventSource::PluginCE, (noIntercept ? "AS" : ""), null, handle);
+        return true;
+    } catch {
+        PanicMode::Activate("Exception in _SendPluginEvent: " + getExceptionInfo());
+        return true;
+    }
 }
 
 int countShNods = 0;
@@ -227,17 +265,24 @@ CGameManialinkPage@ thePage;
 bool noIntercept = false;
 
 bool _SendCustomEventSH(CMwStack &in stack, CMwNod@ nod) {
-    wstring type = stack.CurrentWString(1);
-    string s_type = string(type);
-    auto data = stack.CurrentBufferWString();
-    EventInspector::CaptureEvent(type, data, EventSource::SH_SendCE, (noIntercept ? "AS" : ""));
-    bool is_debug = s_type.StartsWith(MLHook::DebugPrefix);
-    if (noIntercept && !is_debug) return true;
-    if (targetSH !is null && targetSH.Page !is null)
-        SendEvents_RunOnlyWhenSafe();
-    if (is_debug) return false;
-    if (s_type == HookEventName) {return false;}
-    return true;
+    if (PanicMode::IsActive) return true;
+    try {
+        wstring type = stack.CurrentWString(1);
+        string s_type = string(type);
+        auto data = stack.CurrentBufferWString();
+        EventInspector::CaptureEvent(type, data, EventSource::SH_SendCE, (noIntercept ? "AS" : ""));
+        bool is_mlhook_event = s_type.StartsWith(MLHook::GlobalPrefix);
+        // custom events are from maniascript, so we always want to intercept them and let everything else through.
+        // if noIntercept is set, then we don't want to bother checking it b/c it came via MLHook anyway.
+        if (noIntercept || !is_mlhook_event) return true;
+        if (s_type == PlaygroundHookEventName && targetSH !is null && targetSH.Page !is null)
+            SendEvents_RunOnlyWhenSafe();
+        if (is_mlhook_event) return false;
+        return true;
+    } catch {
+        PanicMode::Activate("Exception in _SendCustomEventSH: " + getExceptionInfo());
+        return true;
+    }
 }
 
 

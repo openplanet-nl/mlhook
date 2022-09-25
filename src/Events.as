@@ -52,9 +52,12 @@ const string EventSourceToString(EventSource es, bool colorize = true) {
 
 class CustomEvent {
     wstring type;
+    string s_type;
     MwFastBuffer<wstring> data;
+    string[] s_data;
     // for capturing only
     EventSource source = EventSource::Any;
+    string s_source;
     private uint _time = Time::Stamp;
     uint repeatCount = 0;  // for recording repeats during capturing
     CGameUILayer@ layer;
@@ -63,7 +66,9 @@ class CustomEvent {
 
     // no source -- from angelscript code
     CustomEvent(const string &in type, string[] &in data = {}) {
+        this.s_type = type;
         this.type = wstring(type);
+        this.s_data = data;
         for (uint i = 0; i < data.Length; i++) {
             auto item = data[i];
             this.data.Add(wstring(item));
@@ -74,30 +79,43 @@ class CustomEvent {
     CustomEvent(wstring &in type, MwFastBuffer<wstring> &in data, EventSource &in source, const string &in annotation = "",
             CGameUILayer@ layer = null, CGameEditorPluginHandle@ handle = null) {
         this.type = wstring(type);
+        this.s_type = string(type);
         this.source = source;
+        this.s_data.Resize(data.Length);
         for (uint i = 0; i < data.Length; i++) {
             auto item = data[i];
             this.data.Add(item);
+            this.s_data[i] = string(item);
         }
         this.annotation = annotation;
         @this.layer = layer;
         @this.handle = handle;
     }
 
+    string s_data_csv;
+    string s_final;
     const string ToString(bool justData = false) {
-        string dataStr = "{";
-        for (uint i = 0; i < data.Length; i++) {
-            dataStr += "\"" + string(data[i]).Replace('"', '\\"') + (i < data.Length - 1 ? "\", " : "\"");
+        if (s_data_csv.Length == 0) {
+            s_data_csv = "{";
+            for (uint i = 0; i < s_data.Length; i++) {
+                s_data_csv += "\"" + string(s_data[i]).Replace('"', '\\"') + (i < s_data.Length - 1 ? "\", " : "\"");
+            }
+            s_data_csv += "}";
         }
-        dataStr += "}";
-        if (justData) return dataStr;
-        if (source != EventSource::Any)
-            dataStr += ", Source=" + SourceStr;
-        return "CustomEvent(" + type + ", " + dataStr + ")";
+        if (justData) return s_data_csv;
+        if (s_final.Length == 0) {
+            s_final = "CustomEvent(" + s_type + ", " + s_data_csv;
+            if (source != EventSource::Any)
+                s_final += ", Source=" + SourceStr;
+            s_final += ")";
+        }
+        return s_final;
     }
 
     const string get_SourceStr() {
-        return AnnoPrefix + EventSourceToString(source, false);
+        if (s_source.Length == 0)
+            s_source = AnnoPrefix + EventSourceToString(source, false);
+        return s_source;
     }
 
     const string get_AnnoPrefix() {

@@ -24,11 +24,20 @@ const string ArrStringToString(const string[] &in ss) {
     return "{" + string::Join(items, ', ') + "}";
 }
 
+const string ArrUintToString(const uint[] &in ss) {
+    string[] items = array<string>(ss.Length);
+    for (uint i = 0; i < ss.Length; i++) {
+        auto item = ss[i];
+        items[i] = '' + ss[i];
+    }
+    return "{" + string::Join(items, ', ') + "}";
+}
+
 
 class StringAccumulator {
     string[] items = {};
     StringAccumulator() {}
-    void Add(string item) {
+    void Add(const string &in item) {
         items.InsertLast(item);
     }
 }
