@@ -135,6 +135,7 @@ class RBTreeNode {
         if (lrBranch == 0) {
             depth = 0;
         } else {
+            if (parent is null) return;
             @parent = _parent;
             depth = parent.depth + 1;
         }
