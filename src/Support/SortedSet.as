@@ -2,8 +2,8 @@ enum Cmp {Lt = -1, Eq = 0, Gt = 1}
 
 class RedBlackTree {
     uint size = 0;
-    // RBTreeNode@ tip = RBTreeNode({"",""}, CustomEvent("", {""}), -1, null);
-    RBTreeNode@ tip = null;
+    RBTreeNode@ tip = RBTreeNode({"",""}, CustomEvent("", {""}), -1, null);
+    // RBTreeNode@ tip = null;
 
     array<RBTreeNode@> tips = {};
 
