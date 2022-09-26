@@ -6,7 +6,8 @@ namespace MLHook {
         PG_SCE_EventQueue.InsertLast(CustomEvent(type, data));
     }
     void Queue_SendCustomEvent(const string &in type, string[] &in data = {}) {
-        throw('deprecated, use Queue_PG_SendCustomEvent');
+        warn('deprecated, use Queue_PG_SendCustomEvent');
+        Queue_PG_SendCustomEvent(type, data);
     }
 
 
@@ -19,7 +20,8 @@ namespace MLHook {
     }
 
     void Queue_ToInjectedManialink(const string &in PageUID, const string &in msg) {
-        throw('deprecated; use Queue_MessageManialinkPlayground');
+        warn('deprecated; use Queue_MessageManialinkPlayground');
+        Queue_MessageManialinkPlayground(PageUID, msg);
     }
 
     void Queue_MessageManialinkPlayground(const string &in PageUID, const string &in msg) {
@@ -31,7 +33,7 @@ namespace MLHook {
     }
 
     const string get_GlobalPrefix() {return "MLHook";}
-    const string get_EventPrefix() {return "MLHookE_";}
+    const string get_EventPrefix() {return "MLHook_Event_";}
     const string get_QueuePrefix() {return "MLHook_Inbound_";}
     const string get_DebugPrefix() {return "MLHook_Debug_";}
 

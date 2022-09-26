@@ -21,15 +21,31 @@ As a dependency, MLHook lets plugins interact with game elements that would not 
 
 ### For Devs:
 
+Current Features:
+* Send events to Nadeo ML via `CGameManialinkScriptHandler.SendCustomEvent` (e.g., to display a ghost)
+* Inject manialink and send messages to it, change ML state, etc (e.g., to refresh records)
+
 *(Note: additionally, see the section at the bottom)*
 
-[Suggestions requested!](https://github.com/XertroV/tm-ml-to-angelscript-hook/issues)
-* What would you use this for?
-* What manialink elements would you interact with?
+[Suggestions/feedback requested!](https://github.com/XertroV/tm-ml-to-angelscript-hook/issues)
+* Is the API bad or missing something?
+* Any features that would let you do things you can't atm?
+* What manialink elements would you interact with that you can't?
 * Do you want to inject manialink code?
 * Anything else?
 
 #### Feature stuff:
+
+* Done: event inspector
+  * In-prog: more events
+  * Planned: editor, menus, etc
+  * Planned: export captured events as CSV/JSON
+  * Done: filters
+* Done: send script handler events
+* Done: inject ML
+* Done: message injected ML
+* Planned: block some events
+* Planned: better API / patterns for 2-way comms
 
 ##### *(Done)* Event Inspector
 
@@ -44,20 +60,9 @@ As a dependency, MLHook lets plugins interact with game elements that would not 
 This plugin provides exports to allow sending custom events via `ScriptHandler.SendCustomEvent` only atm.
 As a PoC, *Any Ghost* [was patched](https://github.com/XertroV/Any-Ghost/commit/7036885adb8213c87a1bf7719dd697ebb8dd67df) to use the new api (see bottom for details).
 
-##### *(Planned)* Inject Manialink code
-
-Example: could be used to refresh leaderboards without wiping ghosts. (@nbert)
-
 ##### *(Possible)* Std Two-way (async) communication between AngelScript and ManiaScript
 
 ##### *(Possible?)* Std Two-way (sync) communication between AngelScript and ManiaScript
-
-##### Future Features?
-
-* Export inspector log as .csv, etc
-* Interface for sending ad-hoc custom events
-
-<!-- todo: better inputs via ML_SE / InputSE? -->
 
 ### Acknowledgements
 
@@ -84,7 +89,10 @@ GL HF
 
 ## For Developers
 
-MLHook currently allows the use of `SendCustomEvent` on script handlers without crashing the game.
+MLHook currently allows partial 2-way comms between AS and ML.
+Full 2-way comms is planned, but requires more API work.
+
+Also, the use of `SendCustomEvent` on script handlers without crashing the game.
 In general, sending custom events seems to be fine when `.Page` is not null -- which it always is during the typical times that AngelScript runs.
 As far as I can tell, `.Page` is only not-null when Manialink code is executing, and even then, not all of the time.
 
@@ -100,13 +108,19 @@ dependencies = [ 'MLHook' ]
 Send `CGameManialinkScriptHandler` Custom Events via:
 
 ```AngelScript
-MLHook::Queue_SH_SendCustomEvent(const string &in type, string[] &in data = {})
+MLHook::Queue_SH_SendCustomEvent(const string &in type, string[] &in data = {});
+MLHook::Queue_PG_SendCustomEvent(const string &in type, string[] &in data = {});
 ```
 
-#### ML Script Hierarchy
+Inject Manialink code to react to msgs from MLHook (which are independent of TM's script events).
 
-(Note: input from someone more familiar with Maniascript would be appreciated)
-Events seem to
+```AngelScript
+MLHook::InjectManialinkToPlayground(const string &in PageUID, const string &in ManialinkPage, bool replace = false);
+MLHook::Queue_MessageManialinkPlayground(const string &in PageUID, const string &in msg);
+```
+
+Example using injected ML to refresh records: https://github.com/XertroV/tm-somewhat-better-records/blob/master/src/Main.as
+
 
 #### Tips re ML Injection
 
@@ -114,3 +128,32 @@ You'll probably to recover from compile/syntax error:
 - on script error page, press ctrl+g to get rid of overlay
 - wait for "recovery restart" to come up (press okay when it does)
 - after a second the UI should have reloaded, then you can reload the plugin to try your new changes.
+
+
+--------------
+<!-- below not in OP description-->
+
+<!-- todo: better inputs via ML_SE / InputSE? -->
+
+#### ML Script Hierarchy
+
+(Note: input from someone more familiar with Maniascript would be appreciated)
+Events seem to propagate up, like a PlaygroundScriptHandler event gets sent to the ManiaAppPlayground handler too.
+
+(todo)
+
+
+## Changelog
+
+- v0.1.4
+  - API braking change in prep for supporting multiple injection/communication contexts: playground, menu, editor, etc. Each requires its own monitoring loop, etc.
+  - More events gathered now (when they come from PendingEvents there are lots of duplicates, tho)
+  - Inspector improvements: menu item, filters
+  - Added some safety features, but won't help with all cases b/c some crashes aren't due to stuff we can `try{}catch{}`
+  - Added a `RequireVersionApi` that will send a notification & block indefinitely if MLHook is of the wrong version (ideally this can be used to avoid issues when MLHook updates)
+
+- v0.1.3
+  - fix injection of ML code so that it is repeated on new playground loads
+
+- v0.1.1-2
+  - mostly regarding consistency of injection and communication

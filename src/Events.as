@@ -58,6 +58,7 @@ class CustomEvent {
     // for capturing only
     EventSource source = EventSource::Any;
     string s_source;
+    string s_source_clr;
     private uint _time = Time::Stamp;
     uint repeatCount = 0;  // for recording repeats during capturing
     CGameUILayer@ layer;
@@ -120,6 +121,12 @@ class CustomEvent {
         if (s_source.Length == 0)
             s_source = AnnoPrefix + EventSourceToString(source, false);
         return s_source;
+    }
+
+    const string get_SourceStrClr() {
+        if (s_source_clr.Length == 0)
+            s_source_clr = AnnoPrefix + EventSourceToString(source);
+        return s_source_clr;
     }
 
     const string get_AnnoPrefix() {

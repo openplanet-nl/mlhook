@@ -17,19 +17,19 @@ void HookManialinkCode() {
     Dev::InterceptProc("CGameEditorMainPlugin", "SendPluginEvent", _SendPluginEvent);
 #if DEV
     // experimental hooks to see if we can get more events
-    // Dev::InterceptProc("CGameMenuSceneScriptManager", "SceneCreate", _CheckForEvents);
-    // Dev::InterceptProc("CGameManialinkPage", "GetFirstChild", _CheckForEvents);
-    // Dev::InterceptProc("CGameManialinkPage", "GetClassChildren", _CheckForEvents);
-    // Dev::InterceptProc("CGameManialinkFrame", "GetFirstChild", _CheckForEvents);
-    // Dev::InterceptProc("CGameManialinkFrame", "HasClass", _CheckForEvents);
-    // Dev::InterceptProc("CGameManialinkScriptHandler", "IsKeyPressed", _CheckForEvents);
+    Dev::InterceptProc("CGameMenuSceneScriptManager", "SceneCreate", _CheckForEvents);
+    Dev::InterceptProc("CGameManialinkPage", "GetFirstChild", _CheckForEvents);
+    Dev::InterceptProc("CGameManialinkPage", "GetClassChildren", _CheckForEvents);
+    Dev::InterceptProc("CGameManialinkFrame", "GetFirstChild", _CheckForEvents);
+    Dev::InterceptProc("CGameManialinkFrame", "HasClass", _CheckForEvents);
+    Dev::InterceptProc("CGameManialinkScriptHandler", "IsKeyPressed", _CheckForEvents);
 
     // these were good:
-    // Dev::InterceptProc("CGameDataFileManagerScript", "Ghost_Release", _CheckForEvents);
-    // Dev::InterceptProc("CGameDataFileManagerScript", "TaskResult_Release", _CheckForEvents);
-    // Dev::InterceptProc("CGameDataFileManagerScript", "ReleaseTaskResult", _CheckForEvents);
-    // Dev::InterceptProc("CGameDataFileManagerScript", "Map_NadeoServices_GetListFromUid", _CheckForEvents);
-    // Dev::InterceptProc("CGameDataFileManagerScript", "Map_NadeoServices_Get", _CheckForEvents);
+    Dev::InterceptProc("CGameDataFileManagerScript", "Ghost_Release", _CheckForEvents);
+    Dev::InterceptProc("CGameDataFileManagerScript", "TaskResult_Release", _CheckForEvents);
+    Dev::InterceptProc("CGameDataFileManagerScript", "ReleaseTaskResult", _CheckForEvents);
+    Dev::InterceptProc("CGameDataFileManagerScript", "Map_NadeoServices_GetListFromUid", _CheckForEvents);
+    Dev::InterceptProc("CGameDataFileManagerScript", "Map_NadeoServices_Get", _CheckForEvents);
 #endif
     startnew(WatchForSetup);
 }
@@ -160,52 +160,64 @@ void _ProcessAllEventsFor(CustomEvent@[]@ &in eventQueue, SendEventF@ funcSendEv
     }
 }
 
-uint lastPendingCheck = 0;
+// uint lastPendingCheck = 0;
+uint lastShPendingLen = 0;
+LastChecker targetSHChecker;
+LastChecker cmapChecker;
+LastChecker InputMgrChecker;
+LastChecker mcmaChecker;
+
 void CheckForPendingEvents() {
-    if (noIntercept) return;
-    if (lastPendingCheck == Time::Now) {
-        return;
-    }
-    lastPendingCheck = Time::Now;
+    if (noIntercept || !EventInspector::IsCapturing) return;
+    // if (lastPendingCheck == Time::Now) {
+    //     return;
+    // }
+    // lastPendingCheck = Time::Now;
     // CGameManialinkScriptEvent
     if (targetSH !is null && targetSH.PendingEvents.Length > 0) {
-        // dev_trace("targetSH.PendingEvents.Length: " + targetSH.PendingEvents.Length);
-        for (uint i = 0; i < targetSH.PendingEvents.Length; i++) {
-            CGameManialinkScriptEvent@ item = targetSH.PendingEvents[i];
-            EventInspector::CaptureMlScriptEvent(item);
+        uint peLen = targetSH.PendingEvents.Length;
+        if (targetSHChecker.ShouldCheckAgain(peLen, tostring(targetSH.PendingEvents[peLen - 1].Type))) {
+            for (uint i = 0; i < targetSH.PendingEvents.Length; i++) {
+                CGameManialinkScriptEvent@ item = targetSH.PendingEvents[i];
+                EventInspector::CaptureMlScriptEvent(item);
+            }
         }
-    }
+    } else { targetSHChecker.Reset(); }
     // todo: CGameManiaAppScriptEvent excluding CGameManiaAppPlaygroundScriptEvent
     // CGameManiaAppPlaygroundScriptEvent
     if (cmap !is null && cmap.PendingEvents.Length > 0) {
-        // dev_trace("cmap.PendingEvents.Length: " + cmap.PendingEvents.Length);
-        for (uint i = 0; i < cmap.PendingEvents.Length; i++) {
-            CGameManiaAppPlaygroundScriptEvent@ item = cmap.PendingEvents[i];
-            EventInspector::CaptureMAPGScriptEvent(item);
+        uint peLen = cmap.PendingEvents.Length;
+        if (cmapChecker.ShouldCheckAgain(peLen, tostring(cmap.PendingEvents[peLen - 1].Type))) {
+            for (uint i = 0; i < cmap.PendingEvents.Length; i++) {
+                CGameManiaAppPlaygroundScriptEvent@ item = cmap.PendingEvents[i];
+                EventInspector::CaptureMAPGScriptEvent(item);
+            }
         }
-    }
+    } else { cmapChecker.Reset(); }
     // CGameScriptChatEvent -- chat managers seem always null
     // CInputScriptEvent
     if (InputMgr !is null && InputMgr.PendingEvents.Length > 0) {
-        // dev_trace("InputMgr.PendingEvents.Length: " + InputMgr.PendingEvents.Length);
-        for (uint i = 0; i < InputMgr.PendingEvents.Length; i++) {
-            CInputScriptEvent@ item = InputMgr.PendingEvents[i];
-            EventInspector::CaptureInputScriptEvent(item);
+        uint peLen = InputMgr.PendingEvents.Length;
+        if (InputMgrChecker.ShouldCheckAgain(peLen, tostring(InputMgr.PendingEvents[peLen - 1].Type))) {
+            for (uint i = 0; i < InputMgr.PendingEvents.Length; i++) {
+                CInputScriptEvent@ item = InputMgr.PendingEvents[i];
+                EventInspector::CaptureInputScriptEvent(item);
+            }
         }
-    }
+    } else { InputMgrChecker.Reset(); }
     // CGameManiaAppTitle / CGameManiaAppScriptEvent -- works!
-    if (mcma !is null && mcma.PendingEvents.Length > 0 && mcma.PendingEvents.Length != lastMcmaPendingLen) {
-        lastMcmaPendingLen = mcma.PendingEvents.Length;
-        // dev_trace("mcma.PendingEvents.Length: " + mcma.PendingEvents.Length);
-        for (uint i = 0; i < mcma.PendingEvents.Length; i++) {
-            CGameManiaAppScriptEvent@ item = mcma.PendingEvents[i];
-            EventInspector::CaptureMAScriptEvent(item);
+    if (mcma !is null && mcma.PendingEvents.Length > 0) {
+        uint peLen = mcma.PendingEvents.Length;
+        if (mcmaChecker.ShouldCheckAgain(peLen, tostring(mcma.PendingEvents[peLen - 1].Type))) {
+            for (uint i = 0; i < mcma.PendingEvents.Length; i++) {
+                CGameManiaAppScriptEvent@ item = mcma.PendingEvents[i];
+                EventInspector::CaptureMAScriptEvent(item);
+            }
         }
-    }
+    } else { mcmaChecker.Reset(); }
     // warn("CheckForPendingEvents too: " + (Time::Now - lastPendingCheck));
 }
 
-uint lastMcmaPendingLen = 0;
 // string lastLayerType = "";
 
 bool _LayerCustomEvent(CMwStack &in stack, CMwNod@ nod) {

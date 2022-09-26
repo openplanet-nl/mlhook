@@ -26,10 +26,10 @@ void RenderInterface() {
 }
 
 void RenderMenuMain() {
+    EventInspector::RenderMenuMainCapturingNotice();
 #if DEV
     RenderMenuMainExploreNods();
 #endif
-    EventInspector::RenderMenuMainCapturingNotice();
 }
 
 void RenderMenu() {
