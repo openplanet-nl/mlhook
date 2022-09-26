@@ -22,6 +22,10 @@ namespace MLHook {
     import const string get_DebugPrefix() from "MLHook";
     import const string get_LogMePrefix() from "MLHook";
 
+    import const string get_PlaygroundHookEventName() from "MLHook";
+
     import const string get_Version() from "MLHook";
     import void RequireVersionApi(const string &in versionReq) from "MLHook";
+
+    import MLExecutionPointFeed@ get_ML_Hook_Feed() from "MLHook";
 }

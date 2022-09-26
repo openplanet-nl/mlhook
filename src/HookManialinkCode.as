@@ -100,8 +100,6 @@ bool get_manialinkHooksSetUp() {
     return foundCBLayer;
 }
 
-const string PlaygroundHookEventName = MLHook::EventPrefix + "AngelScript_PG_Trigger";
-
 void TryManialinkSetup() {
     if (manialinkHooksSetUp) return;
     auto layer = cmap.UILayerCreate();
@@ -111,7 +109,7 @@ void TryManialinkSetup() {
 <script><!--
 main() {
     while(True) {
-        SendCustomEvent(""" + '"' + PlaygroundHookEventName + '"' + """, []);
+        SendCustomEvent(""" + '"' + MLHook::PlaygroundHookEventName + '"' + """, []);
         yield;
     }
 }
@@ -179,7 +177,7 @@ void CheckForPendingEvents() {
         if (targetSHChecker.ShouldCheckAgain(peLen, tostring(targetSH.PendingEvents[peLen - 1].Type))) {
             for (uint i = 0; i < targetSH.PendingEvents.Length; i++) {
                 CGameManialinkScriptEvent@ item = targetSH.PendingEvents[i];
-                EventInspector::CaptureMlScriptEvent(item);
+                EventInspector::CaptureMLScriptEvent(item);
             }
         }
     } else { targetSHChecker.Reset(); }
@@ -286,7 +284,7 @@ bool _SendCustomEventSH(CMwStack &in stack, CMwNod@ nod) {
         // custom events are from maniascript, so we always want to intercept them and let everything else through.
         // if noIntercept is set, then we don't want to bother checking it b/c it came via MLHook anyway.
         if (noIntercept || !is_mlhook_event) return true;
-        if (s_type == PlaygroundHookEventName && targetSH !is null && targetSH.Page !is null)
+        if (s_type == MLHook::PlaygroundHookEventName && targetSH !is null && targetSH.Page !is null)
             SendEvents_RunOnlyWhenSafe();
         if (s_type.StartsWith(MLHook::LogMePrefix)) {
             print("[" + s_type.SubStr(MLHook::LogMePrefix.Length) + " via MLHook] " + FastBufferWStringToString(data));

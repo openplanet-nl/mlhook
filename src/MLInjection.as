@@ -98,10 +98,10 @@ class OutboundMessage {
     }
 }
 
-OutboundMessage@[] outboundMlMessages = {};
+OutboundMessage@[] outboundMLMessages = {};
 
 void QueueOutboundMessage(OutboundMessage@ ob_msg) {
-    outboundMlMessages.InsertLast(ob_msg);
+    outboundMLMessages.InsertLast(ob_msg);
 }
 
 const string GenQueueName(const string &in PageUID) {
@@ -109,16 +109,16 @@ const string GenQueueName(const string &in PageUID) {
 }
 
 const string GenManialinkPageForOutbound() {
-    if (outboundMlMessages.Length == 0) return "";
+    if (outboundMLMessages.Length == 0) return "";
     dictionary msgsFor = dictionary();
     string _outboundMsgs = "";
-    for (uint i = 0; i < outboundMlMessages.Length; i++) {
-        auto item = outboundMlMessages[i];
+    for (uint i = 0; i < outboundMLMessages.Length; i++) {
+        auto item = outboundMLMessages[i];
         if (!msgsFor.Exists(item.queueName))
             msgsFor[item.queueName] = StringAccumulator();
         cast<StringAccumulator>(msgsFor[item.queueName]).Add(item.msg);
     }
-    outboundMlMessages.RemoveRange(0, outboundMlMessages.Length);
+    outboundMLMessages.RemoveRange(0, outboundMLMessages.Length);
     auto keys = msgsFor.GetKeys();
     for (uint i = 0; i < keys.Length; i++) {
         auto qName = keys[i];
@@ -141,8 +141,8 @@ SendCustomEvent("MLHook_Debug_RanInjection", [""^_Nonce]);
 
 const string MLHook_DataInjectionAttachId = "MLHook_DataInjection";
 
-void RunQueuedMlDataInjections() {
-    if (cmap is null || outboundMlMessages.Length == 0) return;
+void RunQueuedMLDataInjections() {
+    if (cmap is null || outboundMLMessages.Length == 0) return;
     EnsureHooksEstablished();
     RunPendingInjections();
     auto layer = UpdateLayerWAttachIdOrMake(MLHook_DataInjectionAttachId, GenManialinkPageForOutbound());

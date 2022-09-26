@@ -3,7 +3,7 @@ Pending Events:
 ===============
 
 CGameManialinkScriptHandler const MwFastBuffer<CGameManialinkScriptEvent@> PendingEvents
-done: CaptureMlScriptEvent
+done: CaptureMLScriptEvent
 
 CGameServerPlugin const MwFastBuffer<CGameServerPluginEvent@> PendingEvents
 
@@ -69,7 +69,7 @@ namespace EventInspector {
         _RecordCaptured(event);
     }
 
-    void CaptureMlScriptEvent(CGameManialinkScriptEvent@ event) {
+    void CaptureMLScriptEvent(CGameManialinkScriptEvent@ event) {
         if (!ShouldCapture) return;
         string[] data = {tostring(event.KeyCode), event.KeyName, event.CharPressed, event.ControlId, tostring(event.MenuNavAction), event.IsActionAutoRepeat ? 't' : 'f', event.CustomEventType, FastBufferWStringToString(event.CustomEventData), event.PluginCustomEventType, FastBufferWStringToString(event.PluginCustomEventData)};
         auto ce = CustomEvent("CGameManialinkScriptEvent::EType::" + tostring(event.Type), ArrStringToFastBufferWString(data), EventSource::ML_SE);

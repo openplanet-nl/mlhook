@@ -25,11 +25,11 @@ namespace MLHook {
     }
 
     void Queue_MessageManialinkPlayground(const string &in PageUID, const string &in msg) {
-        outboundMlMessages.InsertLast(OutboundMessage(PageUID, msg));
+        outboundMLMessages.InsertLast(OutboundMessage(PageUID, msg));
     }
     void Queue_MessageManialinkMenu(const string &in PageUID, const string &in msg) {
         NotifyTodo("Queue_MessageManialinkMenu not yet implemented");
-        // outboundMlMessages.InsertLast(OutboundMessage(PageUID, msg));
+        // outboundMLMessages.InsertLast(OutboundMessage(PageUID, msg));
     }
 
     const string get_GlobalPrefix() {return "MLHook";}
@@ -37,6 +37,8 @@ namespace MLHook {
     const string get_QueuePrefix() {return "MLHook_Inbound_";}
     const string get_DebugPrefix() {return "MLHook_Debug_";}
     const string get_LogMePrefix() {return "MLHook_LogMe_";}
+
+    const string get_PlaygroundHookEventName() { return EventPrefix + "AngelScript_PG_Trigger"; }
 
     const string get_Version() {
         return Meta::GetPluginFromID("MLHook").Version;
@@ -49,4 +51,19 @@ namespace MLHook {
             while (true) yield();
         }
     }
+
+    MLExecutionPointFeed ML_Hook_Feed = MLExecutionPointFeed();
+    MLExecutionPointFeed@ get_ML_Hook_Feed() { return ML_Hook_Feed; }
+
+    class MLExecutionPointFeed : MLFeed {
+        MLExecutionPointFeed() {
+            super(PlaygroundHookEventName);
+        }
+
+        ref@ Preprocess(string[] &in data) final {
+            return null;
+        }
+    }
+
+    MLExecutionPointFeed@ ML_Hook_Feed = MLExecutionPointFeed();
 }

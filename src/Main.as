@@ -13,7 +13,7 @@ void MainCoro() {
     while (true) {
         yield();
         RunPendingInjections();
-        RunQueuedMlDataInjections();
+        RunQueuedMLDataInjections();
     }
 }
 
