@@ -1,3 +1,5 @@
+enum Cmp {Lt = -1, Eq = 0, Gt = 1}
+
 MwFastBuffer<wstring> ArrStringToFastBufferWString(const string[] &in ss) {
     MwFastBuffer<wstring> ret;
     for (uint i = 0; i < ss.Length; i++) {

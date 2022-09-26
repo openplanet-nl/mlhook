@@ -25,11 +25,12 @@ void RenderInterface() {
     EventInspector::RenderEventInspectorWindow();
 }
 
-#if DEV
 void RenderMenuMain() {
+#if DEV
     RenderMenuMainExploreNods();
-}
 #endif
+    EventInspector::RenderMenuMainCapturingNotice();
+}
 
 void RenderMenu() {
     EventInspector::RenderEventInspectorMenuItem();
@@ -81,7 +82,7 @@ CGameManiaAppTitle@ get_mcma() {
 #if DEV
 void DevRoutines() {
     // startnew(PanicMode::TestPanicMode);
-    // RedBlackTreeChecks();
+    // startnew(RedBlackTreeChecks);
     // TestListConstructors();
 }
 
@@ -91,87 +92,4 @@ void TestListConstructors() {
     print('array<string>(5, "x"): ' + ArrStringToString(array<string>(5, "x")));
 }
 
-void RedBlackTreeChecks() {
-    // print('"a".opCmp("b") = ' + "a".opCmp("b"));
-    // print('"B".opCmp("b") = ' + "B".opCmp("b"));
-    // print('"b".opCmp("b") = ' + "b".opCmp("b"));
-    // print('"x".opCmp("b") = ' + "x".opCmp("b"));
-    // print('"".opCmp("b") = ' + "".opCmp("b"));
-
-    auto rb = RedBlackTree();
-    rb.Put(CustomEvent("", {"2", "1", "3"}));
-    if (true) {
-        print(rb.size);
-        RBTreeNode@ tn;
-        auto iter = rb.GetIter();
-        uint count = 0;
-        for (@tn = iter.Next; tn !is null; @tn = iter.Next) {
-            // print(ArrStringToString(tn.key) + " " + tn.ce.repeatCount + "  --  " + tn.ToString());
-            print(tn.ce.ToString() + " " + tn.ce.repeatCount);
-            count++;
-        }
-        print("total looped: " + count);
-    }
-    rb.Put(CustomEvent("", {"2", "1", "7"}));
-    if (true) {
-        print(rb.size);
-        RBTreeNode@ tn;
-        auto iter = rb.GetIter();
-        uint count = 0;
-        for (@tn = iter.Next; tn !is null; @tn = iter.Next) {
-            // print(ArrStringToString(tn.key) + " " + tn.ce.repeatCount + "  --  " + tn.ToString());
-            print(tn.ce.ToString() + " " + tn.ce.repeatCount);
-            count++;
-        }
-        print("total looped: " + count);
-    }
-    rb.Put(CustomEvent("", {"2", "1", "5"}));
-    if (true) {
-        print(rb.size);
-        RBTreeNode@ tn;
-        auto iter = rb.GetIter();
-        uint count = 0;
-        for (@tn = iter.Next; tn !is null; @tn = iter.Next) {
-            // print(ArrStringToString(tn.key) + " " + tn.ce.repeatCount + "  --  " + tn.ToString());
-            print(tn.ce.ToString() + " " + tn.ce.repeatCount);
-            count++;
-        }
-        print("total looped: " + count);
-    }
-    rb.Put(CustomEvent("", {"2", "1", "4"}));
-    rb.Put(CustomEvent("", {"2", "1", "9"}));
-    rb.Put(CustomEvent("", {"2", "1", "9"}));
-    rb.Put(CustomEvent("", {"2", "1", "1"}));
-    rb.Put(CustomEvent("", {"2", "1"}));
-    rb.Put(CustomEvent("", {"2", "1", "a"}));
-    rb.Put(CustomEvent("", {"a", "j", "r"}));
-    rb.Put(CustomEvent("", {"a", "i", "r"}));
-    rb.Put(CustomEvent("", {"a", "j", "m"}));
-    rb.Put(CustomEvent("", {"a", "j", "z"}));
-    rb.Put(CustomEvent("", {"a", "j", "z"}));
-    rb.Put(CustomEvent("", {"a", "h", "r"}));
-    rb.Put(CustomEvent("", {"z", "r", "r"}));
-    rb.Put(CustomEvent("", {"z", "1", "d"}));
-    rb.Put(CustomEvent("", {"z", "r", "z"}));
-    rb.Put(CustomEvent("", {"z", "6", "r"}));
-    rb.Put(CustomEvent("", {"z", "3", "z"}));
-    rb.Put(CustomEvent("", {"z", "r", "8"}));
-    rb.Put(CustomEvent("", {"m", "r", "r"}));
-    rb.Put(CustomEvent("", {"m", "rr", "r"}));
-    rb.Put(CustomEvent("", {"m", "rl", "r"}));
-    rb.Put(CustomEvent("", {"m", "rl", "2r"}));
-    rb.Put(CustomEvent("", {"l", "rl", "2r"}));
-    rb.Put(CustomEvent("", {"r", "l", "2r"}));
-    rb.Put(CustomEvent("", {"m", "l", "zz"}));
-    print(rb.size);
-    RBTreeNode@ tn;
-    auto iter = rb.GetIter();
-    uint count = 0;
-    for (@tn = iter.Next; tn !is null; @tn = iter.Next) {
-        // print(ArrStringToString(tn.key) + " " + tn.ce.repeatCount + "  --  " + tn.ToString());
-        print(tn.ce.ToString() + " " + tn.ce.repeatCount);
-        count++;
-    }
-    print("total looped: " + count);
-}
 #endif

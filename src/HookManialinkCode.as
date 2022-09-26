@@ -169,7 +169,7 @@ void CheckForPendingEvents() {
     lastPendingCheck = Time::Now;
     // CGameManialinkScriptEvent
     if (targetSH !is null && targetSH.PendingEvents.Length > 0) {
-        dev_trace("targetSH.PendingEvents.Length: " + targetSH.PendingEvents.Length);
+        // dev_trace("targetSH.PendingEvents.Length: " + targetSH.PendingEvents.Length);
         for (uint i = 0; i < targetSH.PendingEvents.Length; i++) {
             CGameManialinkScriptEvent@ item = targetSH.PendingEvents[i];
             EventInspector::CaptureMlScriptEvent(item);
@@ -178,7 +178,7 @@ void CheckForPendingEvents() {
     // todo: CGameManiaAppScriptEvent excluding CGameManiaAppPlaygroundScriptEvent
     // CGameManiaAppPlaygroundScriptEvent
     if (cmap !is null && cmap.PendingEvents.Length > 0) {
-        dev_trace("cmap.PendingEvents.Length: " + cmap.PendingEvents.Length);
+        // dev_trace("cmap.PendingEvents.Length: " + cmap.PendingEvents.Length);
         for (uint i = 0; i < cmap.PendingEvents.Length; i++) {
             CGameManiaAppPlaygroundScriptEvent@ item = cmap.PendingEvents[i];
             EventInspector::CaptureMAPGScriptEvent(item);
@@ -187,7 +187,7 @@ void CheckForPendingEvents() {
     // CGameScriptChatEvent -- chat managers seem always null
     // CInputScriptEvent
     if (InputMgr !is null && InputMgr.PendingEvents.Length > 0) {
-        dev_trace("InputMgr.PendingEvents.Length: " + InputMgr.PendingEvents.Length);
+        // dev_trace("InputMgr.PendingEvents.Length: " + InputMgr.PendingEvents.Length);
         for (uint i = 0; i < InputMgr.PendingEvents.Length; i++) {
             CInputScriptEvent@ item = InputMgr.PendingEvents[i];
             EventInspector::CaptureInputScriptEvent(item);
@@ -196,17 +196,17 @@ void CheckForPendingEvents() {
     // CGameManiaAppTitle / CGameManiaAppScriptEvent -- works!
     if (mcma !is null && mcma.PendingEvents.Length > 0 && mcma.PendingEvents.Length != lastMcmaPendingLen) {
         lastMcmaPendingLen = mcma.PendingEvents.Length;
-        dev_trace("mcma.PendingEvents.Length: " + mcma.PendingEvents.Length);
+        // dev_trace("mcma.PendingEvents.Length: " + mcma.PendingEvents.Length);
         for (uint i = 0; i < mcma.PendingEvents.Length; i++) {
             CGameManiaAppScriptEvent@ item = mcma.PendingEvents[i];
             EventInspector::CaptureMAScriptEvent(item);
         }
     }
+    // warn("CheckForPendingEvents too: " + (Time::Now - lastPendingCheck));
 }
 
 uint lastMcmaPendingLen = 0;
-
-string lastLayerType = "";
+// string lastLayerType = "";
 
 bool _LayerCustomEvent(CMwStack &in stack, CMwNod@ nod) {
     if (PanicMode::IsActive) return true;
@@ -215,8 +215,6 @@ bool _LayerCustomEvent(CMwStack &in stack, CMwNod@ nod) {
         if (!EventInspector::g_capturing) return true;
         auto layer = cast<CGameUILayer>(stack.CurrentNod(2));
         wstring type = stack.CurrentWString(1);
-        if (type == lastLayerType) return true; // too many events? many duplicates
-        lastLayerType = type;
         auto data = stack.CurrentBufferWString();
         EventInspector::CaptureEvent(type, data, EventSource::LayerCE, (noIntercept ? "AS" : ""), layer);
         return true;

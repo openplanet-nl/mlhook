@@ -1,13 +1,76 @@
+/*
+There are too many events to capture for very long without increasing frametimes.
+This gets worse when events happen simultaneously b/c we don't end up counting duplicates.
+So we need a way to aggregate all events within a 'tick' (1s?) into a combined row.
+*/
+class EventsPerTick {
+    // data heirarchy: s_type > s_data
+    private RedBlackTree@ eventTree;
+    private uint _time;
+    uint get_time() { return _time; }
+    uint get_Length() { return eventTree.Length; }
+
+    EventsPerTick(uint time) {
+        _time = time;
+        @eventTree = RedBlackTree();
+    }
+
+    void AddEvent(CustomEvent@ ce) {
+        // string[] key = {ce.s_type};
+        // for (uint i = 0; i < ce.s_data.Length; i++) {
+        //     key.InsertLast(ce.s_data[i]);
+        // }
+        eventTree.Put(ce);
+    }
+
+    IterCE@ EventIter() {
+        return eventTree.GetIter();
+    }
+
+    private array<EventRow@>@ cachedRows;
+
+    array<EventRow@>@ PrepareTickRows() {
+        if (cachedRows !is null && cachedRows.Length > 0) return cachedRows;
+        // string[][] =
+        array<EventRow@> rows = {};
+        CustomEvent@ tn;
+        auto iter = eventTree.GetIter();
+        for (@tn = iter.Next; tn !is null; @tn = iter.Next) {
+            rows.InsertLast(EventRow(
+                {tn.s_type, tn.s_data_csv, tn.SourceStr,
+                tn.repeatCount > 0 ? "\\$d92" + tn.repeatCount : ""},
+                tn, this));
+        }
+        if (time < Time::Stamp) { // we're stale so can cache the rows
+            @cachedRows = rows;
+        }
+        return rows;
+    }
+}
+
+class EventRow {
+    string[]@ row;
+    CustomEvent@ ce;
+    EventsPerTick@ ept;
+    EventRow(string[] &in _row, CustomEvent@ &in _ce, EventsPerTick@ &in _ept) {
+        @row = _row;
+        @ce = _ce;
+        @ept = _ept;
+    }
+}
+
 namespace EventInspector {
+    EventsPerTick@[] ticks = {};
+    EventRow@[] allPastRows = {};
     CustomEvent@[] events = {};
-    uint totalEvents = 0;
-    dictionary recentEventHashLookup;
-    dictionary eventTypes; // type -> count
-    dictionary eventSources; // type -> count
+    dictionary eventTypes;
+    dictionary eventSources;
 
     CustomEvent@[] f_events = {};
     EventSource f_source;
     string f_type;
+
+    // uint eventLimit = 1000;
 
 #if DEV
     bool g_windowVisible = true;
@@ -16,35 +79,72 @@ namespace EventInspector {
 #endif
     bool g_capturing = false;
 
-    bool get_ShouldCapture() {
-        return g_capturing;
-        // should we only capture when the window is visible? -- no, main menu item instead
-        // return g_capturing && g_windowVisible;
-    }
-
-    void StopCapture() {
-        g_capturing = false;
-    }
-
     void MainCoro() {
-        // does nothing atm
+        while (true) {
+            yield();
+            if (ticks.Length > 1) {
+                for (uint i = 0; i < ticks.Length - 1; i++) {
+                    _ArchivePriorTick(ticks[i]);
+                }
+                ticks.RemoveRange(0, ticks.Length - 1);
+            }
+            if (capturedQueue.Length > 0) {
+                uint count = 0;
+                // print(capturedQueue.Length);
+                while (0 < capturedQueue.Length) {
+                    auto event = capturedQueue[capturedQueue.Length - 1];
+                    capturedQueue.RemoveLast();
+                    auto tick = GetCurrentEvents();
+                    print('tick is null ? ' + (tick is null ? 'y' : 'n'));
+                    tick.AddEvent(event);
+                    count++;
+                }
+                // print('after: ' + capturedQueue.Length + ' with count ' + count);
+            }
+            // print("skipping: " + capturedQueue[capturedQueue.Length - 1].ToString());
+            // capturedQueue.RemoveRange(0, capturedQueue.Length);
+        }
     }
+
+    bool get_ShouldCapture() {
+        // todo: should we only capture when the window is visible?
+        return g_capturing && g_windowVisible;
+    }
+
+    uint get_CurrentTick() {
+        return Time::Stamp; // ticks every second
+    }
+
+    EventsPerTick@ GetCurrentEvents() {
+        if (ticks.Length == 0) {
+            ticks.InsertLast(EventsPerTick(CurrentTick));
+        }
+        return ticks[0];
+        // if (ticks.Length == 0 || ticks[ticks.Length - 1].time < CurrentTick) {
+        //     auto curr = EventsPerTick(CurrentTick);
+        //     ticks.InsertLast(curr);
+        //     startnew(_CleanUpPriorTick);
+        //     return curr;
+        // }
+        // return ticks[ticks.Length - 1];
+    }
+
+    void _ArchivePriorTick(EventsPerTick@ ept) {
+        auto ltRows = ept.PrepareTickRows();
+        for (uint i = 0; i < ltRows.Length; i++) {
+            auto row = ltRows[ltRows.Length - i - 1];
+            allPastRows.InsertLast(row);
+        }
+    }
+
+    CustomEvent@[] capturedQueue = {};
 
     void _RecordCaptured(CustomEvent@ event) {
-        // dev_trace("_RecCaptured: " + event.ToString());
-        totalEvents++;
-        eventSources[tostring(event.source)] = uint(eventSources[tostring(event.source)]) + 1;
-        eventTypes[event.type] = uint(eventTypes[event.type]) + 1;
-        if (recentEventHashLookup.Exists(event.ToString())) {
-            auto priorEvent = cast<CustomEvent>(recentEventHashLookup[event.ToString()]);
-            if (priorEvent.time == uint(Time::Stamp)) {
-                priorEvent.repeatCount++;
-                return;
-            }
-        }
-        @recentEventHashLookup[event.ToString()] = event;
-        events.InsertLast(event);
-        _FilterAddEvent(event);
+        capturedQueue.InsertLast(event);
+        // events.InsertLast(event);
+        // eventSources[tostring(event.source)] = true;
+        // eventTypes[event.type] = true;
+        // _FilterAddEvent(event);
     }
 
     void _FilterAddEvent(CustomEvent@ event) {
@@ -100,11 +200,10 @@ namespace EventInspector {
     }
 
     void ResetEventInspector() {
+        ticks.RemoveRange(0, ticks.Length);
         events.RemoveRange(0, events.Length);
-        recentEventHashLookup = dictionary();
         eventTypes.DeleteAll();
         eventSources.DeleteAll();
-        totalEvents = 0;
         f_source = EventSource::Any;
         f_type = "";
         f_events.RemoveRange(0, f_events.Length);
@@ -124,7 +223,6 @@ namespace EventInspector {
     }
 
     bool _EventMeetsFilterConditions(CustomEvent@ event) {
-        // bool ret = true;
         if (f_type != "" && !string(event.type).Contains(f_type)) return false;
         if (f_source != EventSource::Any && event.source != f_source) return false;
         return true;
@@ -138,26 +236,6 @@ namespace EventInspector {
                 tmp.InsertLast(item);
         }
         f_events = tmp;
-    }
-
-    void RenderMenuMainCapturingNotice() {
-        if (g_capturing) {
-            bool menuOpen = UI::BeginMenu("\\$f00" + Icons::Circle + "\\$z Event Capture: (" + totalEvents + ")");
-            AddSimpleTooltip("This will slow down game-code.\nPlease don't forget to turn it off.");
-            if (menuOpen) {
-                RenderEventInspectorMenuItem();
-                UI::Separator();
-                for (uint i = 0; i < AllEventSources.Length; i++) {
-                    auto item = AllEventSources[i];
-                    UI::MenuItem(EventSourceToString(item), '\\$ddd' + uint(EventInspector::eventSources[tostring(item)]), false, false);
-                }
-                UI::Separator();
-                if (UI::MenuItem("Stop Capture", "", false)) {
-                    EventInspector::StopCapture();
-                }
-                UI::EndMenu();
-            }
-        }
     }
 
     void RenderEventInspectorMenuItem() {
@@ -212,8 +290,12 @@ namespace EventInspector {
                 f_type = "";
                 UpdateFilter();
             }
-
+            UI::SameLine();
+            // UI::Dummy(vec2(20));
             // UI::SameLine();
+            // f_excludeMLHookEvents = UI::Checkbox("Exclude MLHook Events?", f_excludeMLHookEvents);
+            // UI::SameLine();
+
 
             cPos = UI::GetCursorPos();
             UI::AlignTextToFramePadding();
@@ -243,6 +325,10 @@ namespace EventInspector {
             }
 
             // table
+            // TODO: What is it counting?
+            UI::Text("Records: " + (allPastRows.Length + GetCurrentEvents().Length));
+            UI::Text("Records: " + (allPastRows.Length));
+            UI::Text("Records: " + (GetCurrentEvents().Length));
 
             if (UI::BeginTable("Events", 6, UI::TableFlags::Resizable)) {
                 UI::TableSetupColumn("Time", UI::TableColumnFlags::WidthFixed, 50);
@@ -253,32 +339,57 @@ namespace EventInspector {
                 UI::TableSetupColumn("Actions", UI::TableColumnFlags::WidthFixed, 230);
                 UI::TableHeadersRow();
 
-                UI::ListClipper clipper(filteredEvents.Length);
+                auto activeTick = ticks.Length == 0 ? null : ticks[ticks.Length - 1];
+                uint priorRows = allPastRows.Length;
+                array<EventRow@> @activePrepped = activeTick is null ? array<EventRow@>() : activeTick.PrepareTickRows();
+                uint activeRows = activePrepped.Length;
+                // uint activeRows = 0;
+                uint tableRows = activeRows + priorRows;
+                if (activeRows > 0 || activePrepped.Length > 0)
+                    print("activeRows: " + activeRows + " and prepped len: " + activePrepped.Length + ' activeTick is null? ' + (activeTick is null ? 'y' : 'n'));
+                uint lastTime = 0;
+
+                UI::ListClipper clipper(tableRows);
                 while (clipper.Step()) {
                     for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++) {
-                        auto event = filteredEvents[filteredEvents.Length - i - 1];
-                        UI::PushID(event);  // neat; didn't know about this
+                        EventRow@ row;
+                        auto ix = i;
+                        if (i >= int(activeRows)) {
+                            @row = allPastRows[allPastRows.Length - 1 - i + activeRows];
+                        } else {
+                            if (i >= int(activePrepped.Length)) {
+                                continue;
+                            }
+                            @row = activePrepped[activeRows - 1 - i];
+                        }
+
+                        UI::PushID(row.ce);  // neat; didn't know about this
                         UI::TableNextRow();
 
                         UI::TableNextColumn();
-                        UI::Text(Time::Stamp - event.time + " s");
+                        if (lastTime != row.ept.time) {
+                            UI::Text(Time::Stamp - row.ept.time + " s");
+                            lastTime = row.ept.time;
+                        }
+
+                        auto event = row.ce;
 
                         UI::TableNextColumn();
-                        UI::Text(event.type);
+                        UI::Text(row.row[0]);
 
                         UI::TableNextColumn();
-                        UI::Text(event.ToString(true));
+                        UI::Text(row.row[1]);
 
                         UI::TableNextColumn();
-                        UI::Text(event.AnnoPrefix + EventSourceToString(event.source));
+                        UI::Text(row.row[2]);
 
                         UI::TableNextColumn();
-                        if (event.repeatCount > 0)
-                            UI::Text("\\$d92" + event.repeatCount);
+                        UI::Text(row.row[3]);
 
+                        // tick.DrawButtons
                         UI::TableNextColumn();
                         if (UI::Button(Icons::Clipboard + " Type")) {
-                            IO::SetClipboard(event.type);
+                            IO::SetClipboard(event.s_type);
                         }
                         UI::SameLine();
                         if (UI::Button(Icons::Clipboard + " Data")) {
@@ -288,14 +399,13 @@ namespace EventInspector {
                         if (UI::Button(Icons::Clipboard + " All")) {
                             IO::SetClipboard(event.ToString());
                         }
-                        MaybeDrawNodExplorerBtnFor("Layer", event.layer);
-                        MaybeDrawNodExplorerBtnFor("Handle", event.handle);
-                        if (event.layer !is null) {
-                            UI::SameLine();
-                            if (UI::Button(Icons::Cube + " Layer Nod")) {
-                                ExploreNod(event.layer);
-                            }
-                            AddSimpleTooltip("Opens the layer in the Nod Explorer\n\\$f91## Warning. Can crash the game if\nyou don't close the layer tab! ##\\$z");
+                        UI::SameLine();
+                        if (event.layer !is null && UI::Button(Icons::Cube + " Layer Nod")) {
+                            ExploreNod(event.layer);
+                        }
+                        UI::SameLine();
+                        if (event.handle !is null && UI::Button(Icons::Cube + " Handle Nod")) {
+                            ExploreNod(event.handle);
                         }
 
                         UI::PopID();
@@ -305,12 +415,5 @@ namespace EventInspector {
             }
         }
         UI::End();
-    }
-
-    void MaybeDrawNodExplorerBtnFor(const string &in label, CMwNod@ &in nod, bool sameLine = true) {
-        if (sameLine) UI::SameLine();
-        if (nod !is null && UI::Button(Icons::Cube + " " + label + " Nod")) {
-            ExploreNod(nod);
-        }
     }
 }

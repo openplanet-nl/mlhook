@@ -96,11 +96,15 @@ class CustomEvent {
     string s_final;
     const string ToString(bool justData = false) {
         if (s_data_csv.Length == 0) {
-            s_data_csv = "{";
-            for (uint i = 0; i < s_data.Length; i++) {
-                s_data_csv += "\"" + string(s_data[i]).Replace('"', '\\"') + (i < s_data.Length - 1 ? "\", " : "\"");
+            if (data.Length >= 0) {
+                s_data_csv = "{";
+                for (uint i = 0; i < s_data.Length; i++) {
+                    s_data_csv += "\"" + string(s_data[i]).Replace('"', '\\"') + (i < s_data.Length - 1 ? "\", " : "\"");
+                }
+                s_data_csv += "}";
+            } else {
+                s_data_csv = "{}";
             }
-            s_data_csv += "}";
         }
         if (justData) return s_data_csv;
         if (s_final.Length == 0) {
