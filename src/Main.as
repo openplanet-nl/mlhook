@@ -23,6 +23,7 @@ void Render() {
 
 void RenderInterface() {
     EventInspector::RenderEventInspectorWindow();
+    LayersBrowser::RenderInterface();
 }
 
 void RenderMenuMain() {
@@ -34,6 +35,7 @@ void RenderMenuMain() {
 
 void RenderMenu() {
     EventInspector::RenderEventInspectorMenuItem();
+    LayersBrowser::RenderMenu();
 }
 
 // void NotifyRefresh(const string &in msg) {

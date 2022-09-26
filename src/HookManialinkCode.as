@@ -18,16 +18,16 @@ void HookManialinkCode() {
 #if DEV
     // experimental hooks to see if we can get more events
     Dev::InterceptProc("CGameMenuSceneScriptManager", "SceneCreate", _CheckForEvents);
-    Dev::InterceptProc("CGameManialinkPage", "GetFirstChild", _CheckForEvents);
-    Dev::InterceptProc("CGameManialinkPage", "GetClassChildren", _CheckForEvents);
-    Dev::InterceptProc("CGameManialinkFrame", "GetFirstChild", _CheckForEvents);
-    Dev::InterceptProc("CGameManialinkFrame", "HasClass", _CheckForEvents);
-    Dev::InterceptProc("CGameManialinkScriptHandler", "IsKeyPressed", _CheckForEvents);
+    // Dev::InterceptProc("CGameManialinkPage", "GetFirstChild", _CheckForEvents);
+    // Dev::InterceptProc("CGameManialinkPage", "GetClassChildren", _CheckForEvents);
+    // Dev::InterceptProc("CGameManialinkFrame", "GetFirstChild", _CheckForEvents);
+    // Dev::InterceptProc("CGameManialinkFrame", "HasClass", _CheckForEvents);
+    // Dev::InterceptProc("CGameManialinkScriptHandler", "IsKeyPressed", _CheckForEvents);
 
     // these were good:
     Dev::InterceptProc("CGameDataFileManagerScript", "Ghost_Release", _CheckForEvents);
-    Dev::InterceptProc("CGameDataFileManagerScript", "TaskResult_Release", _CheckForEvents);
-    Dev::InterceptProc("CGameDataFileManagerScript", "ReleaseTaskResult", _CheckForEvents);
+    // Dev::InterceptProc("CGameDataFileManagerScript", "TaskResult_Release", _CheckForEvents);
+    // Dev::InterceptProc("CGameDataFileManagerScript", "ReleaseTaskResult", _CheckForEvents);
     Dev::InterceptProc("CGameDataFileManagerScript", "Map_NadeoServices_GetListFromUid", _CheckForEvents);
     Dev::InterceptProc("CGameDataFileManagerScript", "Map_NadeoServices_Get", _CheckForEvents);
 #endif
@@ -107,6 +107,7 @@ void TryManialinkSetup() {
     auto layer = cmap.UILayerCreate();
     layer.AttachId = ML_Setup_AttachId;
     layer.ManialinkPage = """
+
 <script><!--
 main() {
     while(True) {
@@ -130,7 +131,6 @@ funcdef void SendEventF(CustomEvent@ event);
 void SendEvents_RunOnlyWhenSafe() {
     if (PanicMode::IsActive) return;
     try {
-        CheckForPendingEvents();
         if (targetSH is null || targetSH.Page is null) return;
         uint gt = targetSH.GameTime;
         if (gt > lastGameTime) {
@@ -277,6 +277,7 @@ bool noIntercept = false;
 bool _SendCustomEventSH(CMwStack &in stack, CMwNod@ nod) {
     if (PanicMode::IsActive) return true;
     try {
+        CheckForPendingEvents();
         wstring type = stack.CurrentWString(1);
         string s_type = string(type);
         auto data = stack.CurrentBufferWString();
@@ -287,6 +288,9 @@ bool _SendCustomEventSH(CMwStack &in stack, CMwNod@ nod) {
         if (noIntercept || !is_mlhook_event) return true;
         if (s_type == PlaygroundHookEventName && targetSH !is null && targetSH.Page !is null)
             SendEvents_RunOnlyWhenSafe();
+        if (s_type.StartsWith(MLHook::LogMePrefix)) {
+            print("[" + s_type.SubStr(MLHook::LogMePrefix.Length) + " via MLHook] " + FastBufferWStringToString(data));
+        }
         if (is_mlhook_event) return false;
         return true;
     } catch {

@@ -20,6 +20,7 @@ namespace MLHook {
     import const string get_EventPrefix() from "MLHook";
     import const string get_QueuePrefix() from "MLHook";
     import const string get_DebugPrefix() from "MLHook";
+    import const string get_LogMePrefix() from "MLHook";
 
     import const string get_Version() from "MLHook";
     import void RequireVersionApi(const string &in versionReq) from "MLHook";

@@ -36,6 +36,7 @@ namespace MLHook {
     const string get_EventPrefix() {return "MLHook_Event_";}
     const string get_QueuePrefix() {return "MLHook_Inbound_";}
     const string get_DebugPrefix() {return "MLHook_Debug_";}
+    const string get_LogMePrefix() {return "MLHook_LogMe_";}
 
     const string get_Version() {
         return Meta::GetPluginFromID("MLHook").Version;

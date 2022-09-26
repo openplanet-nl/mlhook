@@ -32,7 +32,7 @@ for pluginSrc in ${pluginSources[@]}; do
   PLUGIN_PRETTY_NAME="$(cat ./info.toml | dos2unix | grep '^name' | cut -f 2 -d '=' | tr -d '\"\r' | sed 's/^[ ]*//')"
   PLUGIN_VERSION="$(cat ./info.toml | dos2unix | grep '^version' | cut -f 2 -d '=' | tr -d '\"\r' | sed 's/^[ ]*//')"
   echo "$PLUGIN_PRETTY_NAME"
-  if [[ "$PLUGIN_PRETTY_NAME" == "ML Hook & Event Inspector" ]]; then
+  if [[ "$PLUGIN_PRETTY_NAME" == "MLHook & Event Inspector" ]]; then
     PLUGIN_PRETTY_NAME="MLHook"
   fi
 
@@ -61,15 +61,15 @@ for pluginSrc in ${pluginSources[@]}; do
   # echo $PLUGIN_NAME
   _colortext16 green "✅ Output file/folder name: ${PLUGIN_NAME}"
 
-  BUILD_NAME=$PLUGIN_NAME-$(date +%s).zip
-  RELEASE_NAME=$PLUGIN_NAME-$PLUGIN_VERSION.op
-  PLUGIN_DEV_LOC=$PLUGINS_DIR/$PLUGIN_NAME
-  PLUGIN_RELEASE_LOC=$PLUGINS_DIR/$RELEASE_NAME
+  BUILD_NAME="$PLUGIN_NAME-$(date +%s).zip"
+  RELEASE_NAME="$PLUGIN_NAME-$PLUGIN_VERSION.op"
+  PLUGIN_DEV_LOC="$PLUGINS_DIR/$PLUGIN_NAME"
+  PLUGIN_RELEASE_LOC="$PLUGINS_DIR/$RELEASE_NAME"
 
   function buildPlugin {
-    7z a ./$BUILD_NAME ./$pluginSrc/* ./LICENSE ./README.md
+    7z a "./$BUILD_NAME" "./$pluginSrc/"* ./LICENSE ./README.md
 
-    cp -v $BUILD_NAME $RELEASE_NAME
+    cp -v "$BUILD_NAME" "$RELEASE_NAME"
 
     _colortext16 green "\n✅ Built plugin as ${BUILD_NAME} and copied to ./${RELEASE_NAME}.\n"
   }
@@ -81,11 +81,11 @@ for pluginSrc in ${pluginSources[@]}; do
     dev|prerelease|unittest)
       # in case it doesn't exist
       _build_dest=$PLUGIN_DEV_LOC
-      mkdir -p $_build_dest/
-      rm -vr $_build_dest/* || true
-      cp -LR -v ./$pluginSrc/* $_build_dest/
+      mkdir -p "$_build_dest/"
+      rm -vr "$_build_dest/"* || true
+      cp -LR -v "./$pluginSrc/"* "$_build_dest/"
       # cp -LR -v ./external/* $_build_dest/
-      cp -LR -v ./info.toml $_build_dest/
+      cp -LR -v ./info.toml "$_build_dest/"
       _copy_exit_code="$?"
       ;;
   esac
