@@ -166,6 +166,8 @@ LastChecker InputMgrChecker;
 LastChecker mcmaChecker;
 
 void CheckForPendingEvents() {
+    // todo (maybe): we need to avoid checking EI::IsCapturing if we (ab)use it for routing
+    // atm it's okay b/c we only care about MLHook custom events coming from ML
     if (noIntercept || !EventInspector::IsCapturing) return;
     // if (lastPendingCheck == Time::Now) {
     //     return;
@@ -278,9 +280,11 @@ bool _SendCustomEventSH(CMwStack &in stack, CMwNod@ nod) {
         CheckForPendingEvents();
         wstring type = stack.CurrentWString(1);
         string s_type = string(type);
-        auto data = stack.CurrentBufferWString();
-        EventInspector::CaptureEvent(type, data, EventSource::SH_SendCE, (noIntercept ? "AS" : ""));
         bool is_mlhook_event = s_type.StartsWith(MLHook::GlobalPrefix);
+        auto data = stack.CurrentBufferWString();
+        // right now, this is the only entrypoint for ML->AS events -- might need to be generalized later
+        HookRouter::OnEvent(s_type, data);
+        EventInspector::CaptureEvent(type, data, EventSource::SH_SendCE, (noIntercept ? "AS" : ""));
         // custom events are from maniascript, so we always want to intercept them and let everything else through.
         // if noIntercept is set, then we don't want to bother checking it b/c it came via MLHook anyway.
         if (noIntercept || !is_mlhook_event) return true;

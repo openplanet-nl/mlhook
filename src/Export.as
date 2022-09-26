@@ -27,5 +27,6 @@ namespace MLHook {
     import const string get_Version() from "MLHook";
     import void RequireVersionApi(const string &in versionReq) from "MLHook";
 
-    import MLExecutionPointFeed@ get_ML_Hook_Feed() from "MLHook";
+    import void RegisterMLHook(HookMLEventsByType@ hookObj) from "MLHook";
+    import void RegisterPlaygroundMLExecutionPointCallback(MLFeedFunction@ func) from "MLHook";
 }

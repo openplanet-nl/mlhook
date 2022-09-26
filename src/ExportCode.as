@@ -53,6 +53,25 @@ namespace MLHook {
         }
     }
 
-    // PlaygroundMLExecutionPointFeed _ML_Hook_Feed = PlaygroundMLExecutionPointFeed();
+    class PlaygroundMLExecutionPointFeed : MLFeed {
+        PlaygroundMLExecutionPointFeed() {
+            super("MLHook_Event_AngelScript_PG_Trigger");
+        }
+
+        ref@ Preprocess(string[] &in data) final {
+            return null;
+        }
+    }
+
+    PlaygroundMLExecutionPointFeed _ML_Hook_Feed;
     // PlaygroundMLExecutionPointFeed@ get_ML_Hook_Feed() { return _ML_Hook_Feed; }
+
+    // note: callback arg is always null
+    void RegisterPlaygroundMLExecutionPointCallback(MLFeedFunction@ func) {
+        _ML_Hook_Feed.RegisterCallback(func);
+    }
+
+    void RegisterMLHook(HookMLEventsByType@ hookObj) {
+        HookRouter::RegisterMLHook(hookObj);
+    }
 }

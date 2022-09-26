@@ -18,7 +18,8 @@ namespace MLHook {
             return _sourcePlugin;
         }
 
-        void OnEvent(const string &in type, string[] &in data) {
+        // todo: considering if OnEvent should be string[] or MwFastBuffer<wstring>
+        void OnEvent(const string &in type, MwFastBuffer<wstring> &in data) {
             // todo, declare `void OnEvent(const string &in type, string[] &in data) override {}` in your class
             // to react to events.
             throw("OnEvent unimplemented");
@@ -30,7 +31,7 @@ namespace MLHook {
         }
     }
 
-    shared funcdef void MLFeedFunctionRaw(string[] &in data);
+    shared funcdef void MLFeedFunctionRaw(MwFastBuffer<wstring> &in data);
     shared funcdef void MLFeedFunction(ref@ processedData);
 
     shared class MLFeed : HookMLEventsByType {
@@ -50,7 +51,7 @@ namespace MLHook {
             callbackPlugins.InsertLast(Meta::ExecutingPlugin());
         }
 
-        void OnEvent(const string &in type, string[] &in data) override final {
+        void OnEvent(const string &in type, MwFastBuffer<wstring> &in data) override final {
             auto obj = Preprocess(data);
             // i needs to be int in case of an issue with index 0
             for (int i = 0; i < int(callbacksRaw.Length); i++) {
@@ -77,18 +78,8 @@ namespace MLHook {
             }
         }
 
-        ref@ Preprocess(string[] &in data) {
+        ref@ Preprocess(MwFastBuffer<wstring> &in data) {
             throw('override Preprocess(data).');
-            return null;
-        }
-    }
-
-    shared class PlaygroundMLExecutionPointFeed : MLFeed {
-        PlaygroundMLExecutionPointFeed() {
-            super("MLHook_Event_AngelScript_PG_Trigger");
-        }
-
-        ref@ Preprocess(string[] &in data) final {
             return null;
         }
     }
