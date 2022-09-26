@@ -38,6 +38,7 @@ namespace MLHook {
     const string get_DebugPrefix() {return "MLHook_Debug_";}
     const string get_LogMePrefix() {return "MLHook_LogMe_";}
 
+    // note: hardcoded in PlaygroundMLExecutionPointFeed
     const string get_PlaygroundHookEventName() { return EventPrefix + "AngelScript_PG_Trigger"; }
 
     const string get_Version() {
@@ -52,18 +53,6 @@ namespace MLHook {
         }
     }
 
-    MLExecutionPointFeed ML_Hook_Feed = MLExecutionPointFeed();
-    MLExecutionPointFeed@ get_ML_Hook_Feed() { return ML_Hook_Feed; }
-
-    class MLExecutionPointFeed : MLFeed {
-        MLExecutionPointFeed() {
-            super(PlaygroundHookEventName);
-        }
-
-        ref@ Preprocess(string[] &in data) final {
-            return null;
-        }
-    }
-
-    MLExecutionPointFeed@ ML_Hook_Feed = MLExecutionPointFeed();
+    // PlaygroundMLExecutionPointFeed _ML_Hook_Feed = PlaygroundMLExecutionPointFeed();
+    // PlaygroundMLExecutionPointFeed@ get_ML_Hook_Feed() { return _ML_Hook_Feed; }
 }

@@ -7,6 +7,9 @@ void Main() {
 #if DEV
     startnew(DevRoutines);
 #endif
+#if DEV || TEST
+    startnew(RunTests);
+#endif
 }
 
 void MainCoro() {
@@ -94,4 +97,11 @@ void TestListConstructors() {
     print('array<string>(5, "x"): ' + ArrStringToString(array<string>(5, "x")));
 }
 
+#endif
+
+
+#if DEV || TEST
+void RunTests() {
+
+}
 #endif

@@ -82,4 +82,14 @@ namespace MLHook {
             return null;
         }
     }
+
+    shared class PlaygroundMLExecutionPointFeed : MLFeed {
+        PlaygroundMLExecutionPointFeed() {
+            super("MLHook_Event_AngelScript_PG_Trigger");
+        }
+
+        ref@ Preprocess(string[] &in data) final {
+            return null;
+        }
+    }
 }
