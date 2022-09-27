@@ -72,6 +72,7 @@ This is a non-exhaustive list of those who are owed partial credit and appreciat
 * zer0detail
 * Miss
 * nbert
+* zer0detail
 
 (contact @XertroV if someone is missing; I know people are, just that I don't know enough of the lore.)
 
