@@ -3,8 +3,10 @@ CGameDataFileManagerScript@ LastUsedDfm;
 void Main() {
     HookManialinkCode();
     startnew(MainCoro);
-    startnew(EventInspector::MainCoro);
     startnew(HookRouter::MainCoro);
+#if SIG_DEVELOPER
+    startnew(EventInspector::MainCoro); // note: does nothing as of 2022-09-27
+#endif
 #if DEV
     startnew(DevRoutines);
 #endif
@@ -34,22 +36,22 @@ void Render() {
 }
 
 void RenderInterface() {
-    EventInspector::RenderEventInspectorWindow();
 #if SIG_DEVELOPER
+    EventInspector::RenderEventInspectorWindow();
     LayersBrowser::RenderInterface();
 #endif
 }
 
 void RenderMenuMain() {
-    EventInspector::RenderMenuMainCapturingNotice();
-#if DEV
+    EventInspector::RenderMenuMainCapturingNotice(); // since this is a notice that only shows up when capturing is active, better to have it show up than not if it is somehow enabled
+#if SIG_DEVELOPER
     RenderMenuMainExploreNods();
 #endif
 }
 
 void RenderMenu() {
-    EventInspector::RenderEventInspectorMenuItem();
 #if SIG_DEVELOPER
+    EventInspector::RenderEventInspectorMenuItem();
     LayersBrowser::RenderMenu();
 #endif
 }

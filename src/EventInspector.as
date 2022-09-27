@@ -20,8 +20,6 @@ namespace EventInspector {
 
     bool get_ShouldCapture() {
         return g_capturing;
-        // should we only capture when the window is visible? -- no, main menu item instead
-        // return g_capturing && g_windowVisible;
     }
 
     void StopCapture() {

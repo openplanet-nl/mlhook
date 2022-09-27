@@ -15,7 +15,7 @@ That's all you need to know, but read on if you're curious.
 ### For Everyone:
 
 MLHook is a dependency plugin (for use by other plugins) to enable running code at the same time as Manialink does.
-It is also a developer tool used to inspect all Custom Events.
+It is also a developer tool used to inspect all Custom Events. (You must have the developer signature mode enabled.)
 
 As a dependency, MLHook lets plugins interact with game elements that would not otherwise be possible, and send Custom Events that would otherwise not be possible.
 
@@ -146,7 +146,7 @@ Events seem to propagate up, like a PlaygroundScriptHandler event gets sent to t
 
 ## Changelog
 
-- v0.1.5, v0.1.6, v0.1.7
+- v0.1.5-0.1.8
   - Add cleanup of injected ML on plugin unload
   - Improve UILayer browser
   - API for getting a feed of data
