@@ -1,3 +1,14 @@
+/*
+
+8b    d8 88         88 88b 88  88888 888888  dP""b8 888888
+88b  d88 88         88 88Yb88     88 88__   dP   `"   88
+88YbdP88 88  .o     88 88 Y88 o.  88 88""   Yb        88
+88 YY 88 88ood8     88 88  Y8 "bodP' 888888  YboodP   88
+
+ML INJECTIONS
+
+*/
+
 class InjectionSpec {
     private string _PageUID;
     private string _ManialinkPage;
@@ -49,8 +60,12 @@ void RerunInjectionsOnSetupCoro() {
     }
 }
 
+const string GenAttachId(const string &in PageUID) {
+    return MLHook::GlobalPrefix + PageUID;
+}
+
 void InjectIfNotPresent(InjectionSpec@ spec) {
-    const string _attachId = spec.PageUID;
+    const string _attachId = GenAttachId(spec.PageUID);
     bool alreadyExists = false;
     auto layers = cmap.UILayers;
     CGameUILayer@ layer;
@@ -73,6 +88,82 @@ void InjectIfNotPresent(InjectionSpec@ spec) {
     layer.AttachId = _attachId;
     layer.ManialinkPage = spec.ManialinkPage;
 }
+
+const string RemnantAttachId = "RemnantOfHook_RemoveMe";
+
+void CleanUpLayer(CGameUILayer@ layer) {
+    layer.ManialinkPage = MinimalManialinkPageCode; // deleting layers sometimes crashes the game, this is easier
+    layer.AttachId = RemnantAttachId;
+    // todo: can we delete layers?
+}
+
+void CleanUpRemnants() {
+    warn("CleanUpRemnants currently crashes the game, sometimes at least.");
+    // can trigger it manually from NodExplorer but calling it here crashes the game :(
+    return; // until a method is found
+    /*
+    if (cmap is null) return;
+    for (uint i = 0; i < cmap.UILayers.Length; i++) {
+        auto layer = cmap.UILayers[i];
+        if (layer.AttachId == RemnantAttachId) {
+            cmap.UILayerDestroy(layer);
+            i--;
+        }
+    }
+    */
+}
+
+void RemoveAllInjections() {
+    // clear our cached injections
+    CMAP_InjectQueue.RemoveRange(0, CMAP_InjectQueue.Length);
+    CMAP_CurrentInjections.RemoveRange(0, CMAP_CurrentInjections.Length);
+    // undo injected layers if they exist
+    if (cmap is null) return;
+    auto layers = cmap.UILayers;
+    for (uint i = 0; i < layers.Length; i++) {
+        auto layer = layers[i];
+        if (layer.AttachId.StartsWith(MLHook::GlobalPrefix)) {
+            CleanUpLayer(layer);
+        }
+    }
+    // CleanUpRemnants();
+}
+
+void RemoveInjected(const string &in PageUID) {
+    // don't reinject it
+    for (uint i = 0; i < CMAP_CurrentInjections.Length; i++) {
+        auto item = CMAP_CurrentInjections[i];
+        if (item.PageUID == PageUID) {
+            CMAP_CurrentInjections.RemoveAt(i);
+            break;
+        }
+    }
+    if (cmap is null) return; // can't remove layers if none exist
+    // unload it if it's loaded
+    auto _attachId = GenAttachId(PageUID);
+    auto layers = cmap.UILayers;
+    for (uint i = 0; i < layers.Length; i++) {
+        auto layer = layers[i];
+        if (layer.AttachId == _attachId) {
+            CleanUpLayer(layer);
+            break;
+        }
+    }
+    // startnew(CleanUpRemnants);
+}
+
+
+/*
+
+   db    .dP"Y8              `Yb.       8b    d8 88
+  dPYb   `Ybo."     ________   `Yb.     88b  d88 88
+ dP__Yb  o.`Y8b     """"""""   .dP'     88YbdP88 88  .o
+dP""""Yb 8bodP'              .dP'       88 YY 88 88ood8
+
+MESSAGES FROM AS TO ML
+
+*/
+
 
 class OutboundMessage {
     private string _PageUID;

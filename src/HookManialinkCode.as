@@ -17,7 +17,7 @@ void HookManialinkCode() {
     Dev::InterceptProc("CGameEditorMainPlugin", "SendPluginEvent", _SendPluginEvent);
 #if DEV
     // experimental hooks to see if we can get more events
-    Dev::InterceptProc("CGameMenuSceneScriptManager", "SceneCreate", _CheckForEvents);
+    // Dev::InterceptProc("CGameMenuSceneScriptManager", "SceneCreate", _CheckForEvents);
     // Dev::InterceptProc("CGameManialinkPage", "GetFirstChild", _CheckForEvents);
     // Dev::InterceptProc("CGameManialinkPage", "GetClassChildren", _CheckForEvents);
     // Dev::InterceptProc("CGameManialinkFrame", "GetFirstChild", _CheckForEvents);
@@ -25,11 +25,11 @@ void HookManialinkCode() {
     // Dev::InterceptProc("CGameManialinkScriptHandler", "IsKeyPressed", _CheckForEvents);
 
     // these were good:
-    Dev::InterceptProc("CGameDataFileManagerScript", "Ghost_Release", _CheckForEvents);
+    // Dev::InterceptProc("CGameDataFileManagerScript", "Ghost_Release", _CheckForEvents);
     // Dev::InterceptProc("CGameDataFileManagerScript", "TaskResult_Release", _CheckForEvents);
     // Dev::InterceptProc("CGameDataFileManagerScript", "ReleaseTaskResult", _CheckForEvents);
-    Dev::InterceptProc("CGameDataFileManagerScript", "Map_NadeoServices_GetListFromUid", _CheckForEvents);
-    Dev::InterceptProc("CGameDataFileManagerScript", "Map_NadeoServices_Get", _CheckForEvents);
+    // Dev::InterceptProc("CGameDataFileManagerScript", "Map_NadeoServices_GetListFromUid", _CheckForEvents);
+    // Dev::InterceptProc("CGameDataFileManagerScript", "Map_NadeoServices_Get", _CheckForEvents);
 #endif
     startnew(WatchForSetup);
 }
@@ -82,7 +82,7 @@ bool get_uiPopulated() {
     return true;
 }
 
-const string ML_Setup_AttachId = "AngelScript_CallBack";
+const string ML_Setup_AttachId = MLHook::GlobalPrefix + "AngelScript_CallBack";
 
 bool get_manialinkHooksSetUp() {
     bool foundCBLayer = false;
@@ -287,20 +287,19 @@ bool _SendCustomEventSH(CMwStack &in stack, CMwNod@ nod) {
         EventInspector::CaptureEvent(type, data, EventSource::SH_SendCE, (noIntercept ? "AS" : ""));
         // custom events are from maniascript, so we always want to intercept them and let everything else through.
         // if noIntercept is set, then we don't want to bother checking it b/c it came via MLHook anyway.
-        if (noIntercept || !is_mlhook_event) return true;
+        if (noIntercept) return true;
+        if (!is_mlhook_event) return true;
         if (s_type == MLHook::PlaygroundHookEventName && targetSH !is null && targetSH.Page !is null)
             SendEvents_RunOnlyWhenSafe();
         if (s_type.StartsWith(MLHook::LogMePrefix)) {
             print("[" + s_type.SubStr(MLHook::LogMePrefix.Length) + " via MLHook] " + FastBufferWStringToString(data));
         }
-        if (is_mlhook_event) return false;
-        return true;
+        return false;
     } catch {
         PanicMode::Activate("Exception in _SendCustomEventSH: " + getExceptionInfo());
         return true;
     }
 }
-
 
 // bool logWhenCalled(CMwStack &in stack, CMwNod@ nod) {
 //     if (noIntercept) return true;

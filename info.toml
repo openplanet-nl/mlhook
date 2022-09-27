@@ -1,7 +1,7 @@
 [meta]
 name     = "MLHook & Event Inspector"
 author   = "XertroV"
-category = "Utilities"
+category = "MLHook"
 version  = "0.1.5"
 
 [script]

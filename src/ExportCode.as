@@ -32,7 +32,7 @@ namespace MLHook {
         // outboundMLMessages.InsertLast(OutboundMessage(PageUID, msg));
     }
 
-    const string get_GlobalPrefix() {return "MLHook";}
+    const string get_GlobalPrefix() {return "MLHook_";}
     const string get_EventPrefix() {return "MLHook_Event_";}
     const string get_QueuePrefix() {return "MLHook_Inbound_";}
     const string get_DebugPrefix() {return "MLHook_Debug_";}
@@ -40,6 +40,10 @@ namespace MLHook {
 
     // note: hardcoded in PlaygroundMLExecutionPointFeed
     const string get_PlaygroundHookEventName() { return EventPrefix + "AngelScript_PG_Trigger"; }
+
+    void RegisterMLHook(HookMLEventsByType@ hookObj, const string &in type = "") {
+        HookRouter::RegisterMLHook(hookObj, type);
+    }
 
     const string get_Version() {
         return Meta::GetPluginFromID("MLHook").Version;
@@ -67,11 +71,9 @@ namespace MLHook {
     // PlaygroundMLExecutionPointFeed@ get_ML_Hook_Feed() { return _ML_Hook_Feed; }
 
     // note: callback arg is always null
+#if DEV
     void RegisterPlaygroundMLExecutionPointCallback(MLFeedFunction@ func) {
         _ML_Hook_Feed.RegisterCallback(func);
     }
-
-    void RegisterMLHook(HookMLEventsByType@ hookObj) {
-        HookRouter::RegisterMLHook(hookObj);
-    }
+#endif
 }

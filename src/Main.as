@@ -4,12 +4,21 @@ void Main() {
     HookManialinkCode();
     startnew(MainCoro);
     startnew(EventInspector::MainCoro);
+    startnew(HookRouter::MainCoro);
 #if DEV
     startnew(DevRoutines);
 #endif
 #if DEV || TEST
     startnew(RunTests);
 #endif
+}
+
+void OnDisabled() {
+    RemoveAllInjections();
+}
+void OnEnabled() {}
+void OnDestroyed() {
+    RemoveAllInjections();
 }
 
 void MainCoro() {
