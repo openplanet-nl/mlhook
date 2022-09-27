@@ -137,7 +137,7 @@ namespace EventInspector {
     }
 
     void RenderEventInspectorMenuItem() {
-        if (UI::MenuItem("\\$2f8" + Icons::ListAlt + "\\$z Event Inspector", "", g_windowVisible)) {
+        if (UI::MenuItem("\\$2f8" + Icons::ListAlt + "\\$z ML Event Inspector", "", g_windowVisible)) {
             g_windowVisible = !g_windowVisible;
         }
     }

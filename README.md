@@ -145,6 +145,11 @@ Events seem to propagate up, like a PlaygroundScriptHandler event gets sent to t
 
 ## Changelog
 
+- v0.1.5, v0.1.6
+  - Add cleanup of injected ML on plugin unload
+  - Improve UILayer browser
+  - API for getting a feed of data
+
 - v0.1.4
   - API braking change in prep for supporting multiple injection/communication contexts: playground, menu, editor, etc. Each requires its own monitoring loop, etc.
   - More events gathered now (when they come from PendingEvents there are lots of duplicates, tho)

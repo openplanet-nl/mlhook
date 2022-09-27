@@ -49,10 +49,12 @@ namespace MLHook {
         return Meta::GetPluginFromID("MLHook").Version;
     }
 
+    string[] versionsAlsoCompatible = {"0.1.4", "0.1.5"};
+
     void RequireVersionApi(const string &in versionReq) {
-        if (Version != versionReq) {
+        if (Version != versionReq && versionsAlsoCompatible.Find(versionReq) < 0) {
             auto caller = Meta::ExecutingPlugin();
-            NotifyVersionIssue("caller: " + caller.Name + " requires MLHook version: " + versionReq + ", but MLHook is at version " + Version);
+            NotifyVersionIssue("caller: " + caller.Name + " requires MLHook version: " + versionReq + ", but MLHook is at version " + Version + " which is incompatible.");
             while (true) yield();
         }
     }
