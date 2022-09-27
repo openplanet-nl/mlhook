@@ -146,10 +146,11 @@ Events seem to propagate up, like a PlaygroundScriptHandler event gets sent to t
 
 ## Changelog
 
-- v0.1.5, v0.1.6
+- v0.1.5, v0.1.6, v0.1.7
   - Add cleanup of injected ML on plugin unload
   - Improve UILayer browser
   - API for getting a feed of data
+  - avoid exposing dangerous developer tools to typical users
 
 - v0.1.4
   - API braking change in prep for supporting multiple injection/communication contexts: playground, menu, editor, etc. Each requires its own monitoring loop, etc.

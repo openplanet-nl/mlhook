@@ -1,3 +1,4 @@
+#if SIG_DEVELOPER
 namespace LayersBrowser {
     [Setting hidden]
     bool g_windowVisible = false;
@@ -100,3 +101,4 @@ namespace LayersBrowser {
         }
     }
 }
+#endif
