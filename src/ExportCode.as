@@ -12,11 +12,11 @@ namespace MLHook {
 
 
     void InjectManialinkToPlayground(const string &in PageUID, const string &in ManialinkPage, bool replace = false) {
-        CMAP_InjectQueue.InsertLast(InjectionSpec(PageUID, ManialinkPage, replace));
+        CMAP_InjectQueue.InsertLast(InjectionSpec(PageUID, ToMLScript(ManialinkPage), replace));
     }
     void InjectManialinkToMenu(const string &in PageUID, const string &in ManialinkPage, bool replace = false) {
         NotifyTodo("InjectManialinkToMenu not yet implemented");
-        // CMAP_InjectQueue.InsertLast(InjectionSpec(PageUID, ManialinkPage, replace));
+        // CMAP_InjectQueue.InsertLast(InjectionSpec(PageUID, ToMLScript(ManialinkPage), replace));
     }
 
     void Queue_ToInjectedManialink(const string &in PageUID, const string &in msg) {
@@ -25,8 +25,12 @@ namespace MLHook {
     }
 
     void Queue_MessageManialinkPlayground(const string &in PageUID, const string &in msg) {
-        outboundMLMessages.InsertLast(OutboundMessage(PageUID, msg));
+        outboundMLMessages.InsertLast(OutboundMessage(PageUID, {msg}));
     }
+    void Queue_MessageManialinkPlayground(const string &in PageUID, string[] &in msgs) {
+        outboundMLMessages.InsertLast(OutboundMessage(PageUID, msgs));
+    }
+
     void Queue_MessageManialinkMenu(const string &in PageUID, const string &in msg) {
         NotifyTodo("Queue_MessageManialinkMenu not yet implemented");
         // outboundMLMessages.InsertLast(OutboundMessage(PageUID, msg));
@@ -49,7 +53,7 @@ namespace MLHook {
         return Meta::GetPluginFromID("MLHook").Version;
     }
 
-    string[] versionsAlsoCompatible = {"0.1.4", "0.1.5"};
+    string[] versionsAlsoCompatible = {"0.2.0"};
 
     void RequireVersionApi(const string &in versionReq) {
         if (Version != versionReq && versionsAlsoCompatible.Find(versionReq) < 0) {
@@ -57,6 +61,10 @@ namespace MLHook {
             NotifyVersionIssue("caller: " + caller.Name + " requires MLHook version: " + versionReq + ", but MLHook is at version " + Version + " which is incompatible.");
             while (true) yield();
         }
+    }
+
+    string ToMLScript(const string &in src) {
+        return "\n<script><!--\n\n" + src + "\n\n--></script>\n";
     }
 
     class PlaygroundMLExecutionPointFeed : MLFeed {

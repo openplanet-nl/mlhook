@@ -85,6 +85,7 @@ bool get_uiPopulated() {
 const string ML_Setup_AttachId = MLHook::GlobalPrefix + "AngelScript_CallBack";
 
 bool get_manialinkHooksSetUp() {
+    if (cmap is null) return false;
     bool foundCBLayer = false;
     auto layers = cmap.UILayers;
     for (uint i = 0; i < layers.Length; i++) {

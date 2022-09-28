@@ -146,6 +146,11 @@ Events seem to propagate up, like a PlaygroundScriptHandler event gets sent to t
 
 ## Changelog
 
+- v0.2.0
+  - breaking change re ML receiving msgs from MLHook `Text[][]` now instead of `Text[]` so more than one string can be sent.
+  - breaking change re injected ML: should not be wrapped in `<script><!--`, `--></script>` anymore.
+  - added exported `DebugLogAllHook` utility class
+
 - v0.1.5-0.1.8
   - Add cleanup of injected ML on plugin unload
   - Improve UILayer browser

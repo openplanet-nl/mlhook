@@ -83,4 +83,20 @@ namespace MLHook {
             return null;
         }
     }
+
+    shared class DebugLogAllHook : HookMLEventsByType {
+        DebugLogAllHook(const string &in eventType) {
+            super(eventType);
+        }
+
+        void OnEvent(const string &in type, MwFastBuffer<wstring> &in data) override final {
+            string dataStr = (data.Length == 0) ? "{" : "{ ";
+            for (uint i = 0; i < data.Length; i++) {
+                if (i > 0) dataStr += ", ";
+                dataStr += data[i];
+            }
+            dataStr += (data.Length == 0) ? "}" : " }";
+            trace('[DebugLogAllHook] Type: ' + type + ', Data: ' + dataStr);
+        }
+    }
 }

@@ -13,6 +13,7 @@ namespace MLHook {
 
     // Send a message to some manialink code that you injected
     import void Queue_MessageManialinkPlayground(const string &in PageUID, const string &in msg) from "MLHook";
+    import void Queue_MessageManialinkPlayground(const string &in PageUID, string[] &in msgs) from "MLHook";
     import void Queue_MessageManialinkMenu(const string &in PageUID, const string &in msg) from "MLHook";
     // deprecated:
     import void Queue_ToInjectedManialink(const string &in PageUID, const string &in msg) from "MLHook";
@@ -26,6 +27,8 @@ namespace MLHook {
 
     import const string get_Version() from "MLHook";
     import void RequireVersionApi(const string &in versionReq) from "MLHook";
+
+    import string ToMLScript(const string &in ManialinkPage) from "MLHook";
 
     import void RegisterMLHook(HookMLEventsByType@ hookObj, const string &in type = "") from "MLHook";
 #if DEV

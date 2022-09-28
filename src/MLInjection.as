@@ -167,19 +167,19 @@ MESSAGES FROM AS TO ML
 
 class OutboundMessage {
     private string _PageUID;
-    private string _msg;
+    private string[] _msgs;
     private string _queueName;
     private bool sent = false;
-    OutboundMessage(const string &in PageUID, const string &in msg) {
+    OutboundMessage(const string &in PageUID, string[] &in msgs) {
         this._queueName = GenQueueName(PageUID);
         this._PageUID = PageUID;
-        this._msg = msg;
+        this._msgs = msgs;
     }
     const string get_PageUID() {
         return this._PageUID;
     }
-    const string get_msg() {
-        return this._msg;
+    const string[] get_msgs() {
+        return this._msgs;
     }
     const string get_queueName() {
         return this._queueName;
@@ -207,17 +207,17 @@ const string GenManialinkPageForOutbound() {
         auto item = outboundMLMessages[i];
         if (!msgsFor.Exists(item.queueName))
             msgsFor[item.queueName] = StringAccumulator();
-        cast<StringAccumulator>(msgsFor[item.queueName]).Add(item.msg);
+        cast<StringAccumulator>(msgsFor[item.queueName]).Add("[\"" + string::Join(item.msgs, '","') + "\"]");
     }
     outboundMLMessages.RemoveRange(0, outboundMLMessages.Length);
     auto keys = msgsFor.GetKeys();
     for (uint i = 0; i < keys.Length; i++) {
         auto qName = keys[i];
-        _outboundMsgs += "  declare Text[] " + qName + " for ClientUI;\n";
+        _outboundMsgs += "  declare Text[][] " + qName + " for ClientUI;\n";
         StringAccumulator@ sa = cast<StringAccumulator>(msgsFor[qName]);
         for (uint j = 0; j < sa.items.Length; j++) {
             auto item = sa.items[j];
-            _outboundMsgs += "  " + qName + ".add(\"" + item + "\");\n";
+            _outboundMsgs += "  " + qName + ".add(" + item + ");\n";
         }
     }
     return ("<script><!-- \n"
@@ -225,7 +225,7 @@ const string GenManialinkPageForOutbound() {
     + "declare Integer _Nonce = " + Time::Now + """;
 yield;
 """ + _outboundMsgs + """
-SendCustomEvent("MLHook_Debug_RanInjection", [""^_Nonce]);
+SendCustomEvent("MLHook_Debug_RanMsgSend", [""^_Nonce]);
 }
 --></script>""");
 }
