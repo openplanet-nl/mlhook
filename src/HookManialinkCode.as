@@ -132,7 +132,7 @@ void SendEvents_RunOnlyWhenSafe() {
     try {
         if (targetSH is null || targetSH.Page is null) return;
         uint gt = targetSH.GameTime;
-        if (gt > lastGameTime) {
+        if (gt != lastGameTime) {
             lastGameTime = gt;
             // print("SendEvents_RunOnlyWhenSafe - " + gt);
             _ProcessAllEventsFor(SH_SCE_EventQueue, function(CustomEvent@ event) {
