@@ -45,7 +45,7 @@ void RenderInterface() {
 void RenderMenuMain() {
     EventInspector::RenderMenuMainCapturingNotice(); // since this is a notice that only shows up when capturing is active, better to have it show up than not if it is somehow enabled
 #if SIG_DEVELOPER
-    RenderMenuMainExploreNods();
+    // RenderMenuMainExploreNods();
 #endif
 }
 

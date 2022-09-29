@@ -226,7 +226,7 @@ namespace EventInspector {
 
             // table
 
-            if (UI::BeginTable("Events", 6, UI::TableFlags::Resizable)) {
+            if (UI::BeginTable("Events", 6, UI::TableFlags::Resizable | UI::TableFlags::ScrollY)) {
                 UI::TableSetupColumn("Time", UI::TableColumnFlags::WidthFixed, 50);
                 UI::TableSetupColumn("Type", UI::TableColumnFlags::WidthFixed, 200);
                 UI::TableSetupColumn("Data", UI::TableColumnFlags::WidthStretch);
