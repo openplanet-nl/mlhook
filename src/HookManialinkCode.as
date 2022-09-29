@@ -296,7 +296,7 @@ bool _SendCustomEventSH(CMwStack &in stack, CMwNod@ nod) {
             print("[" + s_type.SubStr(MLHook::LogMePrefix.Length) + " via MLHook] " + FastBufferWStringToString(data));
         }
         // check if never blocking fixes crash
-        return true;
+        return false;
     } catch {
         PanicMode::Activate("Exception in _SendCustomEventSH: " + getExceptionInfo());
         return true;
