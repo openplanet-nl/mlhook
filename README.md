@@ -150,7 +150,7 @@ Events seem to propagate up, like a PlaygroundScriptHandler event gets sent to t
   - breaking change re ML receiving msgs from MLHook `Text[][]` now instead of `Text[]` so more than one string can be sent.
   - breaking change re injected ML: should not be wrapped in `<script><!--`, `--></script>` anymore.
   - added exported `DebugLogAllHook` utility class
-  - fix crash due to mismatching preprocessor conditions
+  - fix crash due to mismatching preprocessor conditions and changes to the way some events can be accessed
 
 - v0.1.5-0.1.8
   - Add cleanup of injected ML on plugin unload

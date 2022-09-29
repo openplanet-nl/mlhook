@@ -191,7 +191,7 @@ void CheckForPendingEvents() {
         if (cmapChecker.ShouldCheckAgain(peLen, tostring(cmap.PendingEvents[peLen - 1].Type))) {
             for (uint i = 0; i < cmap.PendingEvents.Length; i++) {
                 CGameManiaAppPlaygroundScriptEvent@ item = cmap.PendingEvents[i];
-                EventInspector::CaptureMAPGScriptEvent(item);
+                EventInspector::CaptureMAPGScriptEvent(item); // crashes on accessing null fields
             }
         }
     } else { cmapChecker.Reset(); }
@@ -212,7 +212,7 @@ void CheckForPendingEvents() {
         if (mcmaChecker.ShouldCheckAgain(peLen, tostring(mcma.PendingEvents[peLen - 1].Type))) {
             for (uint i = 0; i < mcma.PendingEvents.Length; i++) {
                 CGameManiaAppScriptEvent@ item = mcma.PendingEvents[i];
-                EventInspector::CaptureMAScriptEvent(item);
+                EventInspector::CaptureMAScriptEvent(item); // crashes on accessing null fields
             }
         }
     } else { mcmaChecker.Reset(); }
@@ -295,7 +295,8 @@ bool _SendCustomEventSH(CMwStack &in stack, CMwNod@ nod) {
         if (s_type.StartsWith(MLHook::LogMePrefix)) {
             print("[" + s_type.SubStr(MLHook::LogMePrefix.Length) + " via MLHook] " + FastBufferWStringToString(data));
         }
-        return false;
+        // check if never blocking fixes crash
+        return true;
     } catch {
         PanicMode::Activate("Exception in _SendCustomEventSH: " + getExceptionInfo());
         return true;
