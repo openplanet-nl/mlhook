@@ -71,7 +71,7 @@ namespace MLHook {
         return Meta::GetPluginFromID("MLHook").Version;
     }
 
-    string[] versionsAlsoCompatible = {"0.2.0"};
+    string[] versionsAlsoCompatible = {"0.2.0", "0.2.1"};
 
     void RequireVersionApi(const string &in versionReq) {
         if (Version != versionReq && versionsAlsoCompatible.Find(versionReq) < 0) {
