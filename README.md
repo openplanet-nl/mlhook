@@ -109,15 +109,34 @@ dependencies = [ 'MLHook' ]
 Send `CGameManialinkScriptHandler` Custom Events via:
 
 ```AngelScript
-MLHook::Queue_SH_SendCustomEvent(const string &in type, string[] &in data = {});
-MLHook::Queue_PG_SendCustomEvent(const string &in type, string[] &in data = {});
+void MLHook::Queue_SH_SendCustomEvent(const string &in type, string[] &in data = {})
+void MLHook::Queue_PG_SendCustomEvent(const string &in type, string[] &in data = {})
 ```
 
 Inject Manialink code to react to msgs from MLHook (which are independent of TM's script events).
 
 ```AngelScript
-MLHook::InjectManialinkToPlayground(const string &in PageUID, const string &in ManialinkPage, bool replace = false);
-MLHook::Queue_MessageManialinkPlayground(const string &in PageUID, const string &in msg);
+void MLHook::InjectManialinkToPlayground(const string &in PageUID, const string &in ManialinkPage, bool replace = false)
+void MLHook::Queue_MessageManialinkPlayground(const string &in PageUID, const string &in msg)
+void MLHook::RemoveInjectedMLFromPlayground(const string &in PageUID)
+```
+
+To run code whenever an event with a particular type is detected:
+
+```AngelScript
+void MLHook::RegisterMLHook(HookMLEventsByType@ hookObj, const string &in type = "")
+void MLHook::UnregisterMLHookFromAll(HookMLEventsByType@ hookObj)
+```
+
+To safely unload injected ML and hooks when your plugin is unloaded, add this to `Main.as` (or wherever):
+
+```AngelScript
+void OnDestroyed() { _Unload(); }
+void OnDisabled() { _Unload(); }
+void _Unload() {
+    trace('_Unload, unloading all hooks and removing all injected ML');
+    MLHook::UnregisterMLHooksAndRemoveInjectedML();
+}
 ```
 
 Example using injected ML to refresh records: https://github.com/XertroV/tm-somewhat-better-records/blob/master/src/Main.as
