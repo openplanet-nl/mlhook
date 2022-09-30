@@ -12,12 +12,20 @@ namespace MLHook {
 
 
     void InjectManialinkToPlayground(const string &in PageUID, const string &in ManialinkPage, bool replace = false) {
-        CMAP_InjectQueue.InsertLast(InjectionSpec(PageUID, ToMLScript(ManialinkPage), replace));
+        CMAP_InjectQueue.InsertLast(InjectionSpec(PageUID, ToMLScript(ManialinkPage), Meta::ExecutingPlugin().ID, replace));
     }
     void InjectManialinkToMenu(const string &in PageUID, const string &in ManialinkPage, bool replace = false) {
         NotifyTodo("InjectManialinkToMenu not yet implemented");
-        // CMAP_InjectQueue.InsertLast(InjectionSpec(PageUID, ToMLScript(ManialinkPage), replace));
+        // CMAP_InjectQueue.InsertLast(InjectionSpec(PageUID, ToMLScript(ManialinkPage), Meta::ExecutingPlugin().ID, replace));
     }
+    void RemoveInjectedMLFromPlayground(const string &in PageUID) {
+        RemoveInjected(PageUID);
+    }
+    void RemoveInjectedMLFromMenu(const string &in PageUID) {
+        NotifyTodo("RemoveInjectedMLFromMenu not yet implemented");
+    }
+
+
 
     void Queue_ToInjectedManialink(const string &in PageUID, const string &in msg) {
         warn('deprecated; use Queue_MessageManialinkPlayground');
@@ -48,6 +56,16 @@ namespace MLHook {
     void RegisterMLHook(HookMLEventsByType@ hookObj, const string &in type = "") {
         HookRouter::RegisterMLHook(hookObj, type);
     }
+
+    void UnregisterMLHookFromAll(HookMLEventsByType@ hookObj) {
+        HookRouter::UnregisterMLHook(hookObj);
+    }
+
+    void UnregisterMLHooksAndRemoveInjectedML() {
+        HookRouter::UnregisterExecutingPluginsMLHooks();
+        RemovedExecutingPluginsManialinkFromPlayground();
+    }
+
 
     const string get_Version() {
         return Meta::GetPluginFromID("MLHook").Version;

@@ -12,12 +12,14 @@ ML INJECTIONS
 class InjectionSpec {
     private string _PageUID;
     private string _ManialinkPage;
+    private string _ExecPluginID;
     private bool _replace = false;
     private CGameUILayer@ layer;
 
-    InjectionSpec(const string &in PageUID, const string &in ManialinkPage, bool replace = false) {
+    InjectionSpec(const string &in PageUID, const string &in ManialinkPage, const string &in ExecPluginID, bool replace = false) {
         this._PageUID = PageUID;
         this._ManialinkPage = ManialinkPage;
+        this._ExecPluginID = ExecPluginID;
         this._replace = replace;
     }
 
@@ -27,6 +29,9 @@ class InjectionSpec {
     const string get_ManialinkPage() const {
         return _ManialinkPage;
     }
+    const string get_ExecPluginID() const {
+        return _ExecPluginID;
+    }
     const bool get_replace() const {
         return _replace;
     }
@@ -35,6 +40,15 @@ class InjectionSpec {
         while (layer is null) {
             yield();
         }
+        return layer;
+    }
+
+    void set_Layer(CGameUILayer@ _layer) {
+        if (layer !is null) throw('Layer already exists.');
+        @layer = _layer;
+    }
+
+    CGameUILayer@ get_Layer() {
         return layer;
     }
 }
@@ -87,11 +101,13 @@ void InjectIfNotPresent(InjectionSpec@ spec) {
     @layer = cmap.UILayerCreate();
     layer.AttachId = _attachId;
     layer.ManialinkPage = spec.ManialinkPage;
+    @spec.Layer = layer;
 }
 
 const string RemnantAttachId = "RemnantOfHook_RemoveMe";
 
 void CleanUpLayer(CGameUILayer@ layer) {
+    if (layer is null) return;
     layer.ManialinkPage = MinimalManialinkPageCode; // deleting layers sometimes crashes the game, this is easier
     layer.AttachId = RemnantAttachId;
     // todo: can we delete layers?
@@ -150,6 +166,27 @@ void RemoveInjected(const string &in PageUID) {
         }
     }
     // startnew(CleanUpRemnants);
+}
+
+void RemovedExecutingPluginsManialinkFromPlayground() {
+    auto plugin = Meta::ExecutingPlugin();
+    InjectionSpec@[] toRem = {};
+    for (uint i = 0; i < CMAP_CurrentInjections.Length; i++) {
+        auto spec = CMAP_CurrentInjections[i];
+        if (spec.ExecPluginID == plugin.ID) {
+            CleanUpLayer(spec.Layer);
+            CMAP_CurrentInjections.RemoveAt(i);
+            i--;
+        }
+    }
+    for (uint i = 0; i < CMAP_InjectQueue.Length; i++) {
+        auto spec = CMAP_InjectQueue[i];
+        if (spec.ExecPluginID == plugin.ID) {
+            CleanUpLayer(spec.Layer);
+            CMAP_InjectQueue.RemoveAt(i);
+            i--;
+        }
+    }
 }
 
 
