@@ -21,6 +21,7 @@ class InjectionSpec {
         this._ManialinkPage = ManialinkPage;
         this._ExecPluginID = ExecPluginID;
         this._replace = replace;
+        @this.layer = null;
     }
 
     const string get_PageUID() const {
@@ -37,14 +38,13 @@ class InjectionSpec {
     }
 
     CGameUILayer@ AwaitLayer() {
-        while (layer is null) {
+        while (this.layer is null) {
             yield();
         }
         return layer;
     }
 
     void set_Layer(CGameUILayer@ _layer) {
-        if (layer !is null) throw('Layer already exists.');
         @layer = _layer;
     }
 
@@ -95,6 +95,7 @@ void InjectIfNotPresent(InjectionSpec@ spec) {
             // layer will be set to the last layer with the attach id
             if (layer.AttachId != _attachId) throw("Unexpected AttachId mismatch");
             layer.ManialinkPage = spec.ManialinkPage;
+            @spec.Layer = layer;
         }
         return;
     }
