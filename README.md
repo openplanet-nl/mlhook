@@ -165,6 +165,10 @@ Events seem to propagate up, like a PlaygroundScriptHandler event gets sent to t
 
 ## Changelog
 
+- v0.3.0
+  - breaking change WRT hooks (`OnEvent`) to improve overhead of distributing data -- `OnEvent` now takes an `MLHook::PendingEvent@ event` with attrs: `.type` and `.data`.
+  - performance improvements WRT HookRouter
+
 - v0.2.0
   - breaking change re ML receiving msgs from MLHook `Text[][]` now instead of `Text[]` so more than one string can be sent.
   - breaking change re injected ML: should not be wrapped in `<script><!--`, `--></script>` anymore.

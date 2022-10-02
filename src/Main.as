@@ -26,6 +26,7 @@ void OnDestroyed() {
 void MainCoro() {
     while (true) {
         yield();
+        yield();
         RunPendingInjections();
         RunQueuedMLDataInjections();
     }

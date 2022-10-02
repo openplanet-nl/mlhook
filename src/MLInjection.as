@@ -247,6 +247,7 @@ const string GenManialinkPageForOutbound() {
             msgsFor[item.queueName] = StringAccumulator();
         cast<StringAccumulator>(msgsFor[item.queueName]).Add("[\"" + string::Join(item.msgs, '","') + "\"]");
     }
+    trace('MLHook preparing ' + outboundMLMessages.Length + ' outbound messages to ML');
     outboundMLMessages.RemoveRange(0, outboundMLMessages.Length);
     auto keys = msgsFor.GetKeys();
     for (uint i = 0; i < keys.Length; i++) {
@@ -274,11 +275,10 @@ void RunQueuedMLDataInjections() {
     if (cmap is null || outboundMLMessages.Length == 0) return;
     EnsureHooksEstablished();
     RunPendingInjections();
-    auto layer = UpdateLayerWAttachIdOrMake(MLHook_DataInjectionAttachId, GenManialinkPageForOutbound());
-    // layer.ManialinkPage = GenManialinkPageForOutbound();
+    auto layer = UpdateLayerWAttachIdOrMake(MLHook_DataInjectionAttachId, GenManialinkPageForOutbound(), false);
 }
 
-CGameUILayer@ UpdateLayerWAttachIdOrMake(const string &in AttachId, wstring &in ManialinkPage) {
+CGameUILayer@ UpdateLayerWAttachIdOrMake(const string &in AttachId, wstring &in ManialinkPage, bool canBeRunning = true) {
     if (cmap is null) return null;
     auto layers = cmap.UILayers;
     CGameUILayer@ layer;
@@ -286,6 +286,7 @@ CGameUILayer@ UpdateLayerWAttachIdOrMake(const string &in AttachId, wstring &in 
     for (uint i = 0; i < layers.Length; i++) {
         @layer = layers[i];
         foundLayer = layer.AttachId == AttachId;
+        if (foundLayer && !canBeRunning && layer.IsLocalPageScriptRunning) continue;
         if (foundLayer) break;
     }
     if (!foundLayer) {

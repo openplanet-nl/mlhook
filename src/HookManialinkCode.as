@@ -275,6 +275,8 @@ CGameManialinkPage@ thePage;
 
 bool noIntercept = false;
 
+// right now, this is the only entrypoint for ML->AS events -- might need to be generalized later
+// that entrypoint is via HookRouter::OnEvent
 bool _SendCustomEventSH(CMwStack &in stack, CMwNod@ nod) {
     if (PanicMode::IsActive) return true;
     try {
@@ -282,14 +284,20 @@ bool _SendCustomEventSH(CMwStack &in stack, CMwNod@ nod) {
         wstring type = stack.CurrentWString(1);
         string s_type = string(type);
         bool is_mlhook_event = s_type.StartsWith(MLHook::GlobalPrefix);
-        auto data = stack.CurrentBufferWString();
-        // right now, this is the only entrypoint for ML->AS events -- might need to be generalized later
-        HookRouter::OnEvent(s_type, data);
-        EventInspector::CaptureEvent(type, data, EventSource::SH_SendCE, (noIntercept ? "AS" : ""));
+
+        /* putting the hook router call here will route all events */
+        if (EventInspector::IsCapturing)
+            EventInspector::CaptureEvent(type, stack.CurrentBufferWString(), EventSource::SH_SendCE, (noIntercept ? "AS" : ""));
+
         // custom events are from maniascript, so we always want to intercept them and let everything else through.
         // if noIntercept is set, then we don't want to bother checking it b/c it came via MLHook anyway.
         if (noIntercept) return true;
         if (!is_mlhook_event) return true;
+
+        /* putting the hook router call here will route only mlhook events */
+        auto data = stack.CurrentBufferWString();
+        HookRouter::OnEvent(MLHook::PendingEvent(s_type, data));
+
         if (s_type == MLHook::PlaygroundHookEventName && targetSH !is null && targetSH.Page !is null)
             SendEvents_RunOnlyWhenSafe();
         if (s_type.StartsWith(MLHook::LogMePrefix)) {

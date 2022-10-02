@@ -18,8 +18,11 @@ namespace MLHook {
             return _sourcePlugin;
         }
 
-        // todo: considering if OnEvent should be string[] or MwFastBuffer<wstring>
-        void OnEvent(const string &in type, MwFastBuffer<wstring> &in data) {
+        // // todo: considering if OnEvent should be string[] or MwFastBuffer<wstring>
+        // void OnEvent(const string &in type, MwFastBuffer<wstring> &in data) {
+        //     throw("OnEvent unimplemented");
+        // }
+        void OnEvent(PendingEvent@ event) {
             // todo, declare `void OnEvent(const string &in type, string[] &in data) override {}` in your class
             // to react to events.
             throw("OnEvent unimplemented");
@@ -51,12 +54,13 @@ namespace MLHook {
             callbackPlugins.InsertLast(Meta::ExecutingPlugin());
         }
 
-        void OnEvent(const string &in type, MwFastBuffer<wstring> &in data) override final {
-            auto obj = Preprocess(data);
+        // void OnEvent(const string &in type, MwFastBuffer<wstring> &in data) override final {
+        void OnEvent(PendingEvent@ event) override final {
+            auto obj = Preprocess(event.data);
             // i needs to be int in case of an issue with index 0
             for (int i = 0; i < int(callbacksRaw.Length); i++) {
                 try {
-                    callbacksRaw[i](data);
+                    callbacksRaw[i](event.data);
                 } catch {
                     // todo: test
                     NotifyMLHookError("Exception in callback for " + callbackRawPlugins[i].Name + " -- it will be disabled.\n\nException details:\n" + getExceptionInfo());
@@ -89,14 +93,23 @@ namespace MLHook {
             super(eventType);
         }
 
-        void OnEvent(const string &in type, MwFastBuffer<wstring> &in data) override final {
-            string dataStr = (data.Length == 0) ? "{" : "{ ";
-            for (uint i = 0; i < data.Length; i++) {
+        // void OnEvent(const string &in type, MwFastBuffer<wstring> &in data) override final {
+        void OnEvent(PendingEvent@ event) override final {
+            string dataStr = (event.data.Length == 0) ? "{" : "{ ";
+            for (uint i = 0; i < event.data.Length; i++) {
                 if (i > 0) dataStr += ", ";
-                dataStr += data[i];
+                dataStr += event.data[i];
             }
-            dataStr += (data.Length == 0) ? "}" : " }";
+            dataStr += (event.data.Length == 0) ? "}" : " }";
             trace('[DebugLogAllHook] Type: ' + type + ', Data: ' + dataStr);
+        }
+    }
+
+    shared class PendingEvent {
+        string type;
+        MwFastBuffer<wstring> data;
+        PendingEvent(const string &in _t, MwFastBuffer<wstring> &in _d) {
+            type = _t; data = _d;
         }
     }
 }
