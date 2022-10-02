@@ -73,7 +73,7 @@ void NotifyTodo(const string &in msg) {
 
 void NotifyVersionIssue(const string &in msg) {
     warn(msg);
-    UI::ShowNotification("MLHook Version Issue", msg, vec4(.9, .6, .3, .5), 7500);
+    UI::ShowNotification("MLHook Version Issue", msg, vec4(.9, .6, .3, .5), 20000);
 }
 
 // game api stuff
