@@ -1,5 +1,3 @@
-#if DEV
-
 bool _CheckForEvents(CMwStack &in stack) {
     if (PanicMode::IsActive) return true;
     try {
@@ -10,5 +8,3 @@ bool _CheckForEvents(CMwStack &in stack) {
         return true;
     }
 }
-
-#endif

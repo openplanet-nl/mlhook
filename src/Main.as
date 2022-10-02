@@ -7,12 +7,6 @@ void Main() {
 #if SIG_DEVELOPER
     startnew(EventInspector::MainCoro); // note: does nothing as of 2022-09-27
 #endif
-#if DEV
-    startnew(DevRoutines);
-#endif
-#if DEV || TEST
-    startnew(RunTests);
-#endif
 }
 
 void OnDisabled() {
@@ -99,26 +93,3 @@ CGameCtnMenusManiaPlanet@ get_MenuMgr() {
 CGameManiaAppTitle@ get_mcma() {
     return MenuMgr.MenuCustom_CurrentManiaApp;
 }
-
-#if DEV
-void DevRoutines() {
-    // startnew(PanicMode::TestPanicMode);
-    // startnew(RedBlackTreeChecks);
-    // TestListConstructors();
-}
-
-void TestListConstructors() {
-    print("array<string>(5): " + ArrStringToString(array<string>(5)));
-    print("array<uint>(5, 10): " + ArrUintToString(array<uint>(5, 10)));
-    print('array<string>(5, "x"): ' + ArrStringToString(array<string>(5, "x")));
-}
-
-#endif
-
-
-#if DEV || TEST
-void RunTests() {
-    // todo: check for consistency between ML Execution feed type if necessary.
-    // might not end up doing this b/c the pattern crashes OP/angelscript
-}
-#endif
