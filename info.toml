@@ -2,10 +2,11 @@
 name     = "MLHook & Event Inspector"
 author   = "XertroV"
 category = "MLHook"
-version  = "0.3.0"
+version  = "0.3.1"
 
 [script]
 #__DEFINES__
-exports = [ "Export.as" ] # no src/ prefix b/c of build.sh
-shared_exports = [ "ExportShared.as" ] # no src/ prefix b/c of build.sh
+module = "MLHook"
+exports = [ "Exports/Export.as" ] # no src/ prefix b/c of build.sh
+shared_exports = [ "Exports/ExportShared.as" ] # no src/ prefix b/c of build.sh
 # dependencies = [ 'MLHook' ]
