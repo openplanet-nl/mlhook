@@ -127,7 +127,24 @@ uint lastGameTime = 0;
 
 funcdef void SendEventF(CustomEvent@ event);
 
+bool IsGhostMgrNull() {
+    try {
+        return GetApp().Network.ClientManiaAppPlayground.GhostMgr is null;
+    } catch {
+        return true;
+    }
+}
+
+uint tlGhostMgr = 0;
+void TraceLogGhostMgr() {
+    if (tlGhostMgr % 100 == 0) {
+        trace('GhostMgr is null? ' + (IsGhostMgrNull() ? 'yes' : 'no'));
+    }
+    tlGhostMgr++;
+}
+
 void SendEvents_RunOnlyWhenSafe() {
+    TraceLogGhostMgr();
     if (PanicMode::IsActive) return;
     try {
         if (targetSH is null || targetSH.Page is null) return;
@@ -167,6 +184,7 @@ LastChecker InputMgrChecker;
 LastChecker mcmaChecker;
 
 void CheckForPendingEvents() {
+    TraceLogGhostMgr();
     // todo (maybe): we need to avoid checking EI::IsCapturing if we (ab)use it for routing
     // atm it's okay b/c we only care about MLHook custom events coming from ML
     if (noIntercept || !EventInspector::IsCapturing) return;

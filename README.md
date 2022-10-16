@@ -165,6 +165,9 @@ Events seem to propagate up, like a PlaygroundScriptHandler event gets sent to t
 
 ## Changelog
 
+- v0.3.2
+  - fix null pointer exception in hook router (edge case)
+
 - v0.3.0
   - breaking change WRT hooks (`OnEvent`) to improve overhead of distributing data -- `OnEvent` now takes an `MLHook::PendingEvent@ event` with attrs: `.type` and `.data`.
   - performance improvements WRT HookRouter
