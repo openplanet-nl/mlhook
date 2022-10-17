@@ -10,7 +10,7 @@ namespace HookRouter {
             for (uint i = 0; i < pendingEvents.Length; i++) {
                 auto event = pendingEvents[i];
                 // trace('got event for type: ' + type + ' with data of len: ' + data.Length);
-                auto hs = GetHooksByType(event.type, false);
+                auto hs = GetHooksByType(type); // cast<array<MLHook::HookMLEventsByType@> >(hooksByType[event.type]);
                 // hs can be null if a hook was unloaded before an event is processed
                 if (hs !is null) {
                     for (uint i = 0; i < hs.Length; i++) {
@@ -51,19 +51,19 @@ namespace HookRouter {
     }
 
     array<MLHook::HookMLEventsByType@>@ GetHooksByType(const string &in type, bool createIfAbsent = true) {
-        auto hooks = cast<array<MLHook::HookMLEventsByType@>>(hooksByType[type]);
+        auto hooks = cast<array<MLHook::HookMLEventsByType@> >(hooksByType[type]);
         if (hooks is null && createIfAbsent) {
             hooksByType[type] = array<MLHook::HookMLEventsByType@>();
-            hooks = cast<array<MLHook::HookMLEventsByType@>>(hooksByType[type]);
+            hooks = cast<array<MLHook::HookMLEventsByType@> >(hooksByType[type]);
         }
         return hooks;
     }
 
     array<MLHook::HookMLEventsByType@>@ GetHooksByPlugin(const string &in pluginID) {
-        auto hooks = cast<array<MLHook::HookMLEventsByType@>>(hooksByPlugin[pluginID]);
+        auto hooks = cast<array<MLHook::HookMLEventsByType@> >(hooksByPlugin[pluginID]);
         if (hooks is null) {
             @hooksByPlugin[pluginID] = array<MLHook::HookMLEventsByType@>();
-            hooks = cast<array<MLHook::HookMLEventsByType@>>(hooksByPlugin[pluginID]);
+            hooks = cast<array<MLHook::HookMLEventsByType@> >(hooksByPlugin[pluginID]);
         }
         return hooks;
     }
