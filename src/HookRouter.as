@@ -10,7 +10,7 @@ namespace HookRouter {
             for (uint i = 0; i < pendingEvents.Length; i++) {
                 auto event = pendingEvents[i];
                 // trace('got event for type: ' + type + ' with data of len: ' + data.Length);
-                auto hs = cast<array<MLHook::HookMLEventsByType@>>(hooksByType[event.type]);
+                auto hs = cast<array<MLHook::HookMLEventsByType@> >(hooksByType[event.type]);
                 // hs can be null if a hook was unloaded before an event is processed
                 if (hs !is null) {
                     for (uint i = 0; i < hs.Length; i++) {
@@ -43,7 +43,7 @@ namespace HookRouter {
         if (!hooksByType.Exists(type)) {
             @hooksByType[type] = array<MLHook::HookMLEventsByType@>();
         }
-        auto hooks = cast<array<MLHook::HookMLEventsByType@>>(hooksByType[type]);
+        auto hooks = cast< array<MLHook::HookMLEventsByType@> >(hooksByType[type]);
         if (hooks.FindByRef(hookObj) < 0) {
             hooks.InsertLast(hookObj);
             trace("registered MLHook event for type: " + type);
@@ -58,7 +58,7 @@ namespace HookRouter {
         if (!hooksByPlugin.Exists(plugin.ID)) {
             @hooksByPlugin[plugin.ID] = array<MLHook::HookMLEventsByType@>();
         }
-        auto hooks = cast<array<MLHook::HookMLEventsByType@>>(hooksByPlugin[plugin.ID]);
+        auto hooks = cast< array<MLHook::HookMLEventsByType@> >(hooksByPlugin[plugin.ID]);
         if (hooks.FindByRef(hookObj) < 0) {
             hooks.InsertLast(hookObj);
         }
@@ -67,7 +67,7 @@ namespace HookRouter {
     void UnregisterExecutingPluginsMLHooks() {
         auto plugin = Meta::ExecutingPlugin();
         if (hooksByPlugin.Exists(plugin.ID)) {
-            auto hooks = cast<array<MLHook::HookMLEventsByType@>>(hooksByPlugin[plugin.ID]);
+            auto hooks = cast< array<MLHook::HookMLEventsByType@> >(hooksByPlugin[plugin.ID]);
             for (uint i = 0; i < hooks.Length; i++) {
                 UnregisterMLHook(hooks[i]);
             }
@@ -79,7 +79,7 @@ namespace HookRouter {
         string[] remTypes = {};
         for (uint i = 0; i < types.Length; i++) {
             auto hookType = types[i];
-            auto hooks = cast<array<MLHook::HookMLEventsByType@>>(hooksByType[hookType]);
+            auto hooks = cast<array<MLHook::HookMLEventsByType@> >(hooksByType[hookType]);
             int hookIx = hooks.FindByRef(hookObj);
             if (hookIx >= 0) hooks.RemoveAt(hookIx);
             if (hooks.Length == 0) {
