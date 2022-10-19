@@ -53,8 +53,8 @@ namespace MLHook {
     // note: hardcoded in PlaygroundMLExecutionPointFeed
     const string get_PlaygroundHookEventName() { return EventPrefix + "AngelScript_PG_Trigger"; }
 
-    void RegisterMLHook(HookMLEventsByType@ hookObj, const string &in type = "") {
-        HookRouter::RegisterMLHook(hookObj, type);
+    void RegisterMLHook(HookMLEventsByType@ hookObj, const string &in type = "", bool isNadeoEvent = false) {
+        HookRouter::RegisterMLHook(hookObj, type, isNadeoEvent);
     }
 
     void UnregisterMLHookFromAll(HookMLEventsByType@ hookObj) {

@@ -27,7 +27,7 @@ namespace MLHook {
     import const string get_PlaygroundHookEventName() from "MLHook";
 
     // register some code that runs when particular events are detected
-    import void RegisterMLHook(HookMLEventsByType@ hookObj, const string &in type = "") from "MLHook";
+    import void RegisterMLHook(HookMLEventsByType@ hookObj, const string &in type = "", bool isNadeoEvent = false) from "MLHook";
     import void UnregisterMLHookFromAll(HookMLEventsByType@ hookObj) from "MLHook";
 
     // preferred way to unregister injections and hooks -- auto-detects the calling plugin.

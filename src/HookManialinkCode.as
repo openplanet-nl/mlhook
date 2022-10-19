@@ -127,24 +127,7 @@ uint lastGameTime = 0;
 
 funcdef void SendEventF(CustomEvent@ event);
 
-bool IsGhostMgrNull() {
-    try {
-        return GetApp().Network.ClientManiaAppPlayground.GhostMgr is null;
-    } catch {
-        return true;
-    }
-}
-
-uint tlGhostMgr = 0;
-void TraceLogGhostMgr() {
-    if (tlGhostMgr % 100 == 0) {
-        trace('GhostMgr is null? ' + (IsGhostMgrNull() ? 'yes' : 'no'));
-    }
-    tlGhostMgr++;
-}
-
 void SendEvents_RunOnlyWhenSafe() {
-    TraceLogGhostMgr();
     if (PanicMode::IsActive) return;
     try {
         if (targetSH is null || targetSH.Page is null) return;
@@ -184,7 +167,6 @@ LastChecker InputMgrChecker;
 LastChecker mcmaChecker;
 
 void CheckForPendingEvents() {
-    TraceLogGhostMgr();
     // todo (maybe): we need to avoid checking EI::IsCapturing if we (ab)use it for routing
     // atm it's okay b/c we only care about MLHook custom events coming from ML
     if (noIntercept || !EventInspector::IsCapturing) return;
@@ -243,11 +225,17 @@ bool _LayerCustomEvent(CMwStack &in stack, CMwNod@ nod) {
     if (PanicMode::IsActive) return true;
     try {
         CheckForPendingEvents();
-        if (!EventInspector::g_capturing) return true;
-        auto layer = cast<CGameUILayer>(stack.CurrentNod(2));
-        wstring type = stack.CurrentWString(1);
-        auto data = stack.CurrentBufferWString();
-        EventInspector::CaptureEvent(type, data, EventSource::LayerCE, (noIntercept ? "AS" : ""), layer);
+        if (EventInspector::g_capturing || HookRouter::shouldRouteLayerEvents) {
+            wstring type = stack.CurrentWString(1);
+            auto data = stack.CurrentBufferWString();
+            if (EventInspector::g_capturing) {
+                auto layer = cast<CGameUILayer>(stack.CurrentNod(2));
+                EventInspector::CaptureEvent(type, data, EventSource::LayerCE, (noIntercept ? "AS" : ""), layer);
+            }
+            if (HookRouter::shouldRouteLayerEvents) {
+                HookRouter::OnEvent(MLHook::PendingEvent(type, data));
+            }
+        }
         return true;
     } catch {
         PanicMode::Activate("Exception in _LayerCustomEvent: " + getExceptionInfo());
@@ -255,14 +243,26 @@ bool _LayerCustomEvent(CMwStack &in stack, CMwNod@ nod) {
     }
 }
 
+// playground custom events
 bool _SendCustomEvent(CMwStack &in stack, CMwNod@ nod) {
     if (PanicMode::IsActive) return true;
     try {
         CheckForPendingEvents();
-        if (!EventInspector::g_capturing) return true;
-        wstring type = stack.CurrentWString(1);
-        auto data = stack.CurrentBufferWString();
-        EventInspector::CaptureEvent(type, data, EventSource::PG_SendCE, (noIntercept ? "AS" : ""));
+        if (EventInspector::g_capturing || HookRouter::shouldRoutePlaygroundEvents) {
+            wstring type = stack.CurrentWString(1);
+            auto data = stack.CurrentBufferWString();
+            if (EventInspector::g_capturing) {
+                auto layer = cast<CGameUILayer>(stack.CurrentNod(2));
+                EventInspector::CaptureEvent(type, data, EventSource::LayerCE, (noIntercept ? "AS" : ""), layer);
+            }
+            if (HookRouter::shouldRoutePlaygroundEvents) {
+                HookRouter::OnEvent(MLHook::PendingEvent(type, data));
+            }
+        }
+        // if (!EventInspector::g_capturing) return true;
+        // wstring type = stack.CurrentWString(1);
+        // auto data = stack.CurrentBufferWString();
+        // EventInspector::CaptureEvent(type, data, EventSource::PG_SendCE, (noIntercept ? "AS" : ""));
         return true;
     } catch {
         PanicMode::Activate("Exception in _SendCustomEvent: " + getExceptionInfo());
@@ -310,18 +310,22 @@ bool _SendCustomEventSH(CMwStack &in stack, CMwNod@ nod) {
         // custom events are from maniascript, so we always want to intercept them and let everything else through.
         // if noIntercept is set, then we don't want to bother checking it b/c it came via MLHook anyway.
         if (noIntercept) return true;
-        if (!is_mlhook_event) return true;
+        // return here only if it's not an MLhook event AND we don't want to capture SH events
+        if (!is_mlhook_event && !HookRouter::shouldRouteScriptHandlerEvents) return true;
 
-        /* putting the hook router call here will route only mlhook events */
         auto data = stack.CurrentBufferWString();
         HookRouter::OnEvent(MLHook::PendingEvent(s_type, data));
+
+        // return early for non-mlhook events as optimization
+        if (!is_mlhook_event)
+            return true; // game events -> true, mlhook events -> false
 
         if (s_type == MLHook::PlaygroundHookEventName && targetSH !is null && targetSH.Page !is null)
             SendEvents_RunOnlyWhenSafe();
         if (s_type.StartsWith(MLHook::LogMePrefix)) {
             print("[" + s_type.SubStr(MLHook::LogMePrefix.Length) + " via MLHook] " + FastBufferWStringToString(data));
         }
-        // check if never blocking fixes crash
+
         return false;
     } catch {
         PanicMode::Activate("Exception in _SendCustomEventSH: " + getExceptionInfo());

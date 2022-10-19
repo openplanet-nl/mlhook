@@ -95,6 +95,7 @@ class CustomEvent {
 
     string s_data_csv;
     string s_final;
+
     const string ToString(bool justData = false) {
         if (s_data_csv.Length == 0) {
             if (data.Length >= 0) {

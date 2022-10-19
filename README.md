@@ -167,6 +167,8 @@ Events seem to propagate up, like a PlaygroundScriptHandler event gets sent to t
 
 - v0.3.2
   - fix null pointer exception in hook router (edge case)
+  - enable capturing playground/layer custom events (e.g., `CustomEvent(TMxSM_Race_Record_NewRecord, {"48260"}, Source=PG_SendCE)`)
+    - specify the full event name when creating the hook
 
 - v0.3.0
   - breaking change WRT hooks (`OnEvent`) to improve overhead of distributing data -- `OnEvent` now takes an `MLHook::PendingEvent@ event` with attrs: `.type` and `.data`.

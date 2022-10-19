@@ -1,7 +1,10 @@
 namespace HookRouter {
-    dictionary hooksByType;
+    dictionary hooksByType = dictionary();
     array<MLHook::PendingEvent@> pendingEvents;
-    dictionary hooksByPlugin;
+    dictionary hooksByPlugin = dictionary();
+    bool shouldRouteLayerEvents = false;
+    bool shouldRouteScriptHandlerEvents = false;
+    bool shouldRoutePlaygroundEvents = false;
 
     void MainCoro() {
         pendingEvents.Reserve(100);
@@ -10,7 +13,7 @@ namespace HookRouter {
             for (uint i = 0; i < pendingEvents.Length; i++) {
                 auto event = pendingEvents[i];
                 // trace('got event for type: ' + type + ' with data of len: ' + data.Length);
-                auto hs = GetHooksByType(type); // cast<array<MLHook::HookMLEventsByType@> >(hooksByType[event.type]);
+                auto hs = GetHooksByType(event.type); // cast<array<MLHook::HookMLEventsByType@> >(hooksByType[event.type]);
                 // hs can be null if a hook was unloaded before an event is processed
                 if (hs !is null) {
                     for (uint i = 0; i < hs.Length; i++) {
@@ -30,16 +33,23 @@ namespace HookRouter {
         }
     }
 
-    void RegisterMLHook(MLHook::HookMLEventsByType@ hookObj, const string &in _type = "") {
+    void RegisterMLHook(MLHook::HookMLEventsByType@ hookObj, const string &in _type = "", bool isNadeoEvent = false) {
         if (hookObj is null) {
             warn("RegisterMLHook was passed a null hook object!");
             return;
         }
         string type = _type.Length == 0 ? hookObj.type : _type;
-        if (type.StartsWith(MLHook::EventPrefix)) {
-            warn('RegisterMLHook given a type that starts with the event prefix (this is probably wrong)');
+        if (!isNadeoEvent) {
+            if (type.StartsWith(MLHook::EventPrefix)) {
+                warn('RegisterMLHook given a type that starts with the event prefix (this is probably wrong)');
+            }
+            type = MLHook::EventPrefix + type;
+        } else {
+            // if we get any nadeo event capture requests, enable capturing SendCustomEvent events
+            shouldRouteLayerEvents = true;
+            shouldRoutePlaygroundEvents = true;
+            shouldRouteScriptHandlerEvents = true;
         }
-        type = MLHook::EventPrefix + type;
         auto hooks = GetHooksByType(type);
         if (hooks.FindByRef(hookObj) < 0) {
             hooks.InsertLast(hookObj);
@@ -53,8 +63,8 @@ namespace HookRouter {
     array<MLHook::HookMLEventsByType@>@ GetHooksByType(const string &in type, bool createIfAbsent = true) {
         auto hooks = cast<array<MLHook::HookMLEventsByType@> >(hooksByType[type]);
         if (hooks is null && createIfAbsent) {
-            hooksByType[type] = array<MLHook::HookMLEventsByType@>();
-            hooks = cast<array<MLHook::HookMLEventsByType@> >(hooksByType[type]);
+            @hooks = array<MLHook::HookMLEventsByType@>();
+            @hooksByType[type] = hooks;
         }
         return hooks;
     }
@@ -62,8 +72,8 @@ namespace HookRouter {
     array<MLHook::HookMLEventsByType@>@ GetHooksByPlugin(const string &in pluginID) {
         auto hooks = cast<array<MLHook::HookMLEventsByType@> >(hooksByPlugin[pluginID]);
         if (hooks is null) {
-            @hooksByPlugin[pluginID] = array<MLHook::HookMLEventsByType@>();
-            hooks = cast<array<MLHook::HookMLEventsByType@> >(hooksByPlugin[pluginID]);
+            @hooks = array<MLHook::HookMLEventsByType@>();
+            @hooksByPlugin[pluginID] = hooks;
         }
         return hooks;
     }
