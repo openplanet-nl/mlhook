@@ -252,8 +252,7 @@ bool _SendCustomEvent(CMwStack &in stack, CMwNod@ nod) {
             wstring type = stack.CurrentWString(1);
             auto data = stack.CurrentBufferWString();
             if (EventInspector::g_capturing) {
-                auto layer = cast<CGameUILayer>(stack.CurrentNod(2));
-                EventInspector::CaptureEvent(type, data, EventSource::LayerCE, (noIntercept ? "AS" : ""), layer);
+                EventInspector::CaptureEvent(type, data, EventSource::PG_SendCE, (noIntercept ? "AS" : ""));
             }
             if (HookRouter::shouldRoutePlaygroundEvents) {
                 HookRouter::OnEvent(MLHook::PendingEvent(type, data));
