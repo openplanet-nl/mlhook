@@ -90,12 +90,13 @@ GL HF
 
 ## For Developers
 
-MLHook currently allows partial 2-way comms between AS and ML.
-Full 2-way comms is planned, but requires more API work.
+MLHook currently allows 2-way comms between AS and ML.
 
 Also, the use of `SendCustomEvent` on script handlers without crashing the game.
 In general, sending custom events seems to be fine when `.Page` is not null -- which it always is during the typical times that AngelScript runs.
 As far as I can tell, `.Page` is only not-null when Manialink code is executing, and even then, not all of the time.
+
+For an example of how to use MLHook, see [MLFeed: Race Data](https://github.com/XertroV/tm-mlfeed-race-data).
 
 ### Usage:
 
@@ -148,6 +149,8 @@ You'll probably to recover from compile/syntax error:
 - on script error page, press ctrl+g to get rid of overlay
 - wait for "recovery restart" to come up (press okay when it does)
 - after a second the UI should have reloaded, then you can reload the plugin to try your new changes.
+
+While developing, the manialink linter is very very useful to avoid wasting time waiting for recovery restart b/c you left out a `;` or something.
 
 
 --------------
