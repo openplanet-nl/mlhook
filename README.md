@@ -166,10 +166,13 @@ Events seem to propagate up, like a PlaygroundScriptHandler event gets sent to t
 ## Changelog
 
 - v0.3.2
-  - fix null pointer exception in hook router (edge case)
-  - enable capturing playground/layer custom events (e.g., `CustomEvent(TMxSM_Race_Record_NewRecord, {"48260"}, Source=PG_SendCE)`)
+  - fix null pointer exception in hook router (rare edge case)
+  - enable routing all custom events from script handler/playground (e.g., `CustomEvent(TMxSM_Race_Record_NewRecord, {"48260"}, Source=PG_SendCE)`). To hook these game events:
     - specify the full event name when creating the hook
-
+    - specify `isNadeoEvent` as `true` when calling `void RegisterMLHook(HookMLEventsByType@ hookObj, const string &in type = "", bool isNadeoEvent = false)`
+    - layer custom events not supported due to performance impact (there are potentially 100s of these on some frames b/c they're propagated through many ML elements)
+- v0.3.1
+  - fix export issue
 - v0.3.0
   - breaking change WRT hooks (`OnEvent`) to improve overhead of distributing data -- `OnEvent` now takes an `MLHook::PendingEvent@ event` with attrs: `.type` and `.data`.
   - performance improvements WRT HookRouter

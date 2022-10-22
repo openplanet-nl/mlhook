@@ -46,7 +46,7 @@ namespace HookRouter {
             type = MLHook::EventPrefix + type;
         } else {
             // if we get any nadeo event capture requests, enable capturing SendCustomEvent events
-            shouldRouteLayerEvents = true;
+            // shouldRouteLayerEvents = true; // don't enable layer events atm -- big performance hit in some places
             shouldRoutePlaygroundEvents = true;
             shouldRouteScriptHandlerEvents = true;
         }
