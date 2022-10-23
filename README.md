@@ -1,11 +1,5 @@
 # MLHook -- Manialink Hook Library & Event Inspector
 
-## Status: Public Beta and RFC
-
-**Warning: not all features are currently 100% reliable. Some work intermittently.**
-
-**Note: some of these features will be in-progress or planned. The inspector is functional, and it is possible to send some custom events, currently.**
-
 ### For Users:
 
 You may need to install this plugin as a dependency for another plugin that you want to use.
@@ -21,9 +15,16 @@ As a dependency, MLHook lets plugins interact with game elements that would not 
 
 ### For Devs:
 
+#### Status: Public Beta and RFC, mostly stable API
+
 Current Features:
-* Send events to Nadeo ML via `CGameManialinkScriptHandler.SendCustomEvent` (e.g., to display a ghost)
-* Inject manialink and send messages to it, change ML state, etc (e.g., to refresh records)
+
+* Send events to Nadeo ML via `CGameManialinkScriptHandler.SendCustomEvent` (e.g., to display a ghost) or the playground's `SendCustomEvent` function.
+* Inject manialink code to read state from game objects or modify state (e.g., to trigger refreshing records)
+  * Two-way messaging possible.
+	* Receive messages from ML code via events using the `MLHook::HookMLEventsByType` base class. (see `src/Exports/ExportShared.as`)
+	* Sent to ML code via `MLHook::Queue_MessageManialinkPlayground(PageUID, {"Command_Blah", "Arg_Foo"})` (see `src/ExportCode.as` via `src/Exports/Export.as`)
+    * We don't use custom events while sending to maniascript to avoid scope / clobbering issues, and avoid duplicating all messages to all ML scripts.
 
 *(Note: additionally, see the section at the bottom)*
 
@@ -34,47 +35,16 @@ Current Features:
 * Do you want to inject manialink code?
 * Anything else?
 
-#### Feature stuff:
-
-* Done: event inspector
-  * In-prog: more events
-  * Planned: editor, menus, etc
-  * Planned: export captured events as CSV/JSON
-  * Done: filters
-* Done: send script handler events
-* Done: inject ML
-* Done: message injected ML
-* Planned: block some events
-* Planned: better API / patterns for 2-way comms
-
-##### *(Done)* Event Inspector
-
-* All Custom Events
-* Some other events (notably: `CGameManialinkScriptEvent`)
-  * Note: I think other events, like `CGameManiaAppPlaygroundScriptEvent` **should** be possible, but we need to find the right point to check `PendingEvents`.
-
-##### *(Planned)* Additionally, events can be intercepted and/or blocked.
-
-##### *(Partial Implementation / In Progress)* Sending Custom Events
-
-This plugin provides exports to allow sending custom events via `ScriptHandler.SendCustomEvent` only atm.
-As a PoC, *Any Ghost* [was patched](https://github.com/XertroV/Any-Ghost/commit/7036885adb8213c87a1bf7719dd697ebb8dd67df) to use the new api (see bottom for details).
-
-##### *(Possible)* Std Two-way (async) communication between AngelScript and ManiaScript
-
-##### *(Possible?)* Std Two-way (sync) communication between AngelScript and ManiaScript
 
 ### Acknowledgements
 
 This plugin is only possible due to many prior efforts and a lot of trial and error.
 This is a non-exhaustive list of those who are owed partial credit and appreciation:
 * skybaxrider
+* thommie
 * zer0detail
 * Miss
 * nbert
-* zer0detail
-
-(contact @XertroV if someone is missing; I know people are, just that I don't know enough of the lore.)
 
 ### About
 
