@@ -97,6 +97,7 @@ namespace HookRouter {
     }
 
     void UnregisterMLHook(MLHook::HookMLEventsByType@ hookObj) {
+        if (hookObj is null) return;
         auto types = hooksByType.GetKeys();
         string[] remTypes = {};
         for (uint i = 0; i < types.Length; i++) {

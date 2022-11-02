@@ -62,7 +62,11 @@ namespace MLHook {
     }
 
     void UnregisterMLHooksAndRemoveInjectedML() {
+        RemovedExecutingPluginsManialinkFromPlayground();
         HookRouter::UnregisterExecutingPluginsMLHooks();
+    }
+
+    void RemoveAllInjectedML() {
         RemovedExecutingPluginsManialinkFromPlayground();
     }
 
@@ -71,7 +75,7 @@ namespace MLHook {
         return Meta::GetPluginFromID("MLHook").Version;
     }
 
-    string[] versionsAlsoCompatible = {"0.3.0", "0.3.1", "0.3.2"};
+    string[] versionsAlsoCompatible = {"0.3.0", "0.3.1", "0.3.2", "0.3.3"};
 
     void RequireVersionApi(const string &in versionReq) {
         if (Version != versionReq && versionsAlsoCompatible.Find(versionReq) < 0) {

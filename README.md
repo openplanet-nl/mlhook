@@ -13,6 +13,8 @@ It is also a developer tool used to inspect all Custom Events. (You must have th
 
 As a dependency, MLHook lets plugins interact with game elements that would not otherwise be possible, and send Custom Events that would otherwise not be possible.
 
+**Please report performance issues!** See "About" for who/where.
+
 ### For Devs:
 
 #### Status: Public Beta and RFC, mostly stable API
@@ -22,6 +24,7 @@ Current Features:
 * Send events to Nadeo ML via `CGameManialinkScriptHandler.SendCustomEvent` (e.g., to display a ghost) or the playground's `SendCustomEvent` function.
 * Inject manialink code to read state from game objects or modify state (e.g., to trigger refreshing records)
   * Two-way messaging possible.
+  * Scrape ML data of the form `declare (netread) [Type] [Name] for [GameObject]` and pass back to AngelScript
 	* Receive messages from ML code via events using the `MLHook::HookMLEventsByType` base class. (see `src/Exports/ExportShared.as`)
 	* Sent to ML code via `MLHook::Queue_MessageManialinkPlayground(PageUID, {"Command_Blah", "Arg_Foo"})` (see `src/ExportCode.as` via `src/Exports/Export.as`)
     * We don't use custom events while sending to maniascript to avoid scope / clobbering issues, and avoid duplicating all messages to all ML scripts.
@@ -67,6 +70,10 @@ In general, sending custom events seems to be fine when `.Page` is not null -- w
 As far as I can tell, `.Page` is only not-null when Manialink code is executing, and even then, not all of the time.
 
 For an example of how to use MLHook, see [MLFeed: Race Data](https://github.com/XertroV/tm-mlfeed-race-data).
+
+Examples of usage:
+* [Race Stats](https://github.com/XertroV/tm-race-stats/blob/master/src/Main.as)
+* [Autosave Ghosts](https://github.com/XertroV/tm-autosave-ghosts/blob/cd3c21f7b51e27a25755ed6f992a62100962b4a4/src/Main.as)
 
 ### Usage:
 
@@ -138,6 +145,8 @@ Events seem to propagate up, like a PlaygroundScriptHandler event gets sent to t
 
 ## Changelog
 
+- v0.3.3
+  -
 - v0.3.2
   - fix null pointer exception in hook router (rare edge case)
   - enable routing all custom events from script handler/playground (e.g., `CustomEvent(TMxSM_Race_Record_NewRecord, {"48260"}, Source=PG_SendCE)`). To hook these game events:

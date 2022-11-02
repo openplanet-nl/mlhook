@@ -109,6 +109,8 @@ const string RemnantAttachId = "RemnantOfHook_RemoveMe";
 
 void CleanUpLayer(CGameUILayer@ layer) {
     if (layer is null) return;
+    // ~~testing: this might crash things; better to leave the ML there and just not reload
+    // doesn't seem to be the source of the crash -- occurs on 2nd reload of mlhook while in a server
     layer.ManialinkPage = MinimalManialinkPageCode; // deleting layers sometimes crashes the game, this is easier
     layer.AttachId = RemnantAttachId;
     // todo: can we delete layers?
