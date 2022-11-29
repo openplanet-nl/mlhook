@@ -149,7 +149,7 @@ void SendEvents_RunOnlyWhenSafe() {
     }
 }
 
-void _ProcessAllEventsFor(CustomEvent@[]@ &in eventQueue, SendEventF@ funcSendEvent) {
+void _ProcessAllEventsFor(CustomEvent@[]@ eventQueue, SendEventF@ funcSendEvent) {
     while (eventQueue.Length > 0) {
         // cannot do more than one at a time
         auto ce = eventQueue[eventQueue.Length - 1];
@@ -245,7 +245,7 @@ bool _LayerCustomEvent(CMwStack &in stack, CMwNod@ nod) {
     }
 }
 
-// playground custom events
+// playground custom events; note, entrypoint for AS hook is _SendCustomEventSH
 bool _SendCustomEvent(CMwStack &in stack, CMwNod@ nod) {
     if (PanicMode::IsActive) return true;
     try {

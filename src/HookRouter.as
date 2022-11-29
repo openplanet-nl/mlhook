@@ -61,7 +61,7 @@ namespace HookRouter {
     }
 
     array<MLHook::HookMLEventsByType@>@ GetHooksByType(const string &in type, bool createIfAbsent = true) {
-        auto hooks = cast<array<MLHook::HookMLEventsByType@> >(hooksByType[type]);
+        auto hooks = cast<array<MLHook::HookMLEventsByType@>>(hooksByType[type]);
         if (hooks is null && createIfAbsent) {
             @hooks = array<MLHook::HookMLEventsByType@>();
             @hooksByType[type] = hooks;
@@ -118,8 +118,6 @@ namespace HookRouter {
     }
 
     void OnEvent(MLHook::PendingEvent@ event) {
-        if (hooksByType.Exists(event.type)) {
-            pendingEvents.InsertLast(event);
-        }
+        pendingEvents.InsertLast(event);
     }
 }

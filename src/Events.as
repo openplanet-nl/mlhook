@@ -135,7 +135,7 @@ class CustomEvent {
     }
 
     // does not include _time! just for comparing if two events are basically identical
-    bool opEquals(const CustomEvent@ &in other) const {
+    bool opEquals(const CustomEvent@ other) const {
         if (string(type) != string(other.type)) return false;
         if (source != other.source) return false;
         if (data.Length != other.data.Length) return false;

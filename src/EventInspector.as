@@ -289,7 +289,7 @@ namespace EventInspector {
         UI::End();
     }
 
-    void MaybeDrawNodExplorerBtnFor(const string &in label, CMwNod@ &in nod, bool sameLine = true) {
+    void MaybeDrawNodExplorerBtnFor(const string &in label, CMwNod@ nod, bool sameLine = true) {
         if (sameLine) UI::SameLine();
         if (nod !is null && UI::Button(Icons::Cube + " " + label + " Nod")) {
             ExploreNod(nod);
