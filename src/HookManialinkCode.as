@@ -106,7 +106,7 @@ void TryManialinkSetup() {
     auto layer = cmap.UILayerCreate();
     layer.AttachId = ML_Setup_AttachId;
     layer.ManialinkPage = """
-
+<manialink name="MLHook_AngelScript_CallBack" version="3">
 <script><!--
 main() {
     while(True) {
@@ -114,7 +114,9 @@ main() {
         yield;
     }
 }
---></script>""";
+--></script>
+</manialink>
+""";
     @targetSH = cast<CSmArenaInterfaceManialinkScripHandler>(layer.LocalPage.ScriptHandler);
 }
 

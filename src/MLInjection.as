@@ -18,7 +18,7 @@ class InjectionSpec {
 
     InjectionSpec(const string &in PageUID, const string &in ManialinkPage, const string &in ExecPluginID, bool replace = false) {
         this._PageUID = PageUID;
-        this._ManialinkPage = '\n<manialink name="' + GenAttachId(PageUID) + '" version="3">\n' + ManialinkPage;
+        this._ManialinkPage = '\n<manialink name="' + GenAttachId(PageUID) + '" version="3">\n' + ManialinkPage + '\n</manialink>';
         this._ExecPluginID = ExecPluginID;
         this._replace = replace;
         @this.layer = null;
@@ -261,14 +261,15 @@ const string GenManialinkPageForOutbound() {
             _outboundMsgs += "  " + qName + ".add(" + item + ");\n";
         }
     }
-    return ("<script><!-- \n"
+    return ("'\n<manialink name=\"MLHook_DataInjection\" version=\"3\"><script><!-- \n"
     + "main() {\n"
     + "declare Integer _Nonce = " + Time::Now + """;
 yield;
 """ + _outboundMsgs + """
 SendCustomEvent("MLHook_Debug_RanMsgSend", [""^_Nonce]);
 }
---></script>""");
+--></script>
+</manialink>""");
 }
 
 const string MLHook_DataInjectionAttachId = "MLHook_DataInjection";
