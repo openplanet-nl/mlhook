@@ -261,7 +261,7 @@ const string GenManialinkPageForOutbound() {
             _outboundMsgs += "  " + qName + ".add(" + item + ");\n";
         }
     }
-    return ("'\n<manialink name=\"MLHook_DataInjection\" version=\"3\"><script><!-- \n"
+    return ("\n<manialink name=\"MLHook_DataInjection\" version=\"3\"><script><!-- \n"
     + "main() {\n"
     + "declare Integer _Nonce = " + Time::Now + """;
 yield;
