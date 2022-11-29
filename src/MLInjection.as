@@ -18,7 +18,7 @@ class InjectionSpec {
 
     InjectionSpec(const string &in PageUID, const string &in ManialinkPage, const string &in ExecPluginID, bool replace = false) {
         this._PageUID = PageUID;
-        this._ManialinkPage = ManialinkPage;
+        this._ManialinkPage = '\n<manialink name="' + GenAttachId(PageUID) + '" version="3">\n' + ManialinkPage;
         this._ExecPluginID = ExecPluginID;
         this._replace = replace;
         @this.layer = null;

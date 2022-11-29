@@ -69,11 +69,13 @@ Also, the use of `SendCustomEvent` on script handlers without crashing the game.
 In general, sending custom events seems to be fine when `.Page` is not null -- which it always is during the typical times that AngelScript runs.
 As far as I can tell, `.Page` is only not-null when Manialink code is executing, and even then, not all of the time.
 
-For an example of how to use MLHook, see [MLFeed: Race Data](https://github.com/XertroV/tm-mlfeed-race-data).
+For a detailed example of how to use MLHook, see [MLFeed: Race Data](https://github.com/XertroV/tm-mlfeed-race-data).
 
-Examples of usage:
-* [Race Stats](https://github.com/XertroV/tm-race-stats/blob/master/src/Main.as)
+Examples of direct usage (ctrl+f for 'MLHook'):
+* [MLFeed: Race Data](https://github.com/XertroV/tm-mlfeed-race-data/)
 * [Autosave Ghosts](https://github.com/XertroV/tm-autosave-ghosts/blob/cd3c21f7b51e27a25755ed6f992a62100962b4a4/src/Main.as)
+* [Demo: Refreshing Records](https://github.com/XertroV/tm-somewhat-better-records/blob/master/src/Main.as) (NOTE: This example plugin would be rejected because it loads arbitrary data via the `.Script.txt` file -- The prior examples handle this case and encode the script as a string rather than reading it as a file.)
+* [Example refactor: the 'Any Ghost' plugin](https://github.com/zer0detail/Any-Ghost/compare/zer0detail:443d033...XertroV:7036885)
 
 ### Usage:
 

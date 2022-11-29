@@ -15,14 +15,14 @@ namespace MLHook {
         CMAP_InjectQueue.InsertLast(InjectionSpec(PageUID, ToMLScript(ManialinkPage), Meta::ExecutingPlugin().ID, replace));
     }
     void InjectManialinkToMenu(const string &in PageUID, const string &in ManialinkPage, bool replace = false) {
-        NotifyTodo("InjectManialinkToMenu not yet implemented");
+        NotifyTodo("InjectManialinkToMenu not yet implemented - msg @XertroV");
         // CMAP_InjectQueue.InsertLast(InjectionSpec(PageUID, ToMLScript(ManialinkPage), Meta::ExecutingPlugin().ID, replace));
     }
     void RemoveInjectedMLFromPlayground(const string &in PageUID) {
         RemoveInjected(PageUID);
     }
     void RemoveInjectedMLFromMenu(const string &in PageUID) {
-        NotifyTodo("RemoveInjectedMLFromMenu not yet implemented");
+        NotifyTodo("RemoveInjectedMLFromMenu not yet implemented - msg @XertroV");
     }
 
 
@@ -40,7 +40,7 @@ namespace MLHook {
     }
 
     void Queue_MessageManialinkMenu(const string &in PageUID, const string &in msg) {
-        NotifyTodo("Queue_MessageManialinkMenu not yet implemented");
+        NotifyTodo("Queue_MessageManialinkMenu not yet implemented - msg @XertroV");
         // outboundMLMessages.InsertLast(OutboundMessage(PageUID, msg));
     }
 
@@ -75,7 +75,8 @@ namespace MLHook {
         return Meta::GetPluginFromID("MLHook").Version;
     }
 
-    string[] versionsAlsoCompatible = {"0.3.0", "0.3.1", "0.3.2", "0.3.3"};
+    string[] versionsAlsoCompatible = {"0.3.0", "0.3.1", "0.3.2", "0.3.3", "0.3.4",
+        Meta::ExecutingPlugin().Version}; // add the current version in case of forgetfullness
 
     void RequireVersionApi(const string &in versionReq) {
         if (Version != versionReq && versionsAlsoCompatible.Find(versionReq) < 0) {
