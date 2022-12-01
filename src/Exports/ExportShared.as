@@ -18,10 +18,6 @@ namespace MLHook {
             return _sourcePlugin;
         }
 
-        // // todo: considering if OnEvent should be string[] or MwFastBuffer<wstring>
-        // void OnEvent(const string &in type, MwFastBuffer<wstring> &in data) {
-        //     throw("OnEvent unimplemented");
-        // }
         void OnEvent(PendingEvent@ event) {
             // todo, declare `void OnEvent(const string &in type, string[] &in data) override {}` in your class
             // to react to events.
@@ -54,7 +50,6 @@ namespace MLHook {
             callbackPlugins.InsertLast(Meta::ExecutingPlugin());
         }
 
-        // void OnEvent(const string &in type, MwFastBuffer<wstring> &in data) override final {
         void OnEvent(PendingEvent@ event) override final {
             auto obj = Preprocess(event.data);
             // i needs to be int in case of an issue with index 0
@@ -93,7 +88,6 @@ namespace MLHook {
             super(eventType);
         }
 
-        // void OnEvent(const string &in type, MwFastBuffer<wstring> &in data) override final {
         void OnEvent(PendingEvent@ event) override final {
             string dataStr = (event.data.Length == 0) ? "{" : "{ ";
             for (uint i = 0; i < event.data.Length; i++) {

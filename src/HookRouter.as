@@ -16,15 +16,15 @@ namespace HookRouter {
                 auto hs = GetHooksByType(event.type); // cast<array<MLHook::HookMLEventsByType@> >(hooksByType[event.type]);
                 // hs can be null if a hook was unloaded before an event is processed
                 if (hs !is null) {
-                    for (uint i = 0; i < hs.Length; i++) {
-                        auto hook = hs[i];
+                    for (uint j = 0; j < hs.Length; j++) {
+                        auto hook = hs[j];
                         // hook.OnEvent(event.type, event.data);
                         uint startTime = Time::Now;
                         hook.OnEvent(event);
                         if (Time::Now - startTime > 1) {
                             warn('Event processing for hook of type ' + hook.type + ' took ' + (Time::Now - startTime) + ' ms! Removing the hook for performance reasons.');
                             UnregisterMLHook(hook);
-                            i--;
+                            j--;
                         }
                     }
                 }
@@ -118,6 +118,7 @@ namespace HookRouter {
     }
 
     void OnEvent(MLHook::PendingEvent@ event) {
-        pendingEvents.InsertLast(event);
+        if (hooksByType.Exists(event.type))
+            pendingEvents.InsertLast(event);
     }
 }
