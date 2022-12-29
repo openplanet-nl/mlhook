@@ -172,12 +172,13 @@ void RemoveInjected(const string &in PageUID) {
 }
 
 void RemovedExecutingPluginsManialinkFromPlayground() {
+    auto inPg = GetApp().CurrentPlayground !is null;
     auto plugin = Meta::ExecutingPlugin();
     InjectionSpec@[] toRem = {};
     for (uint i = 0; i < CMAP_CurrentInjections.Length; i++) {
         auto spec = CMAP_CurrentInjections[i];
         if (spec.ExecPluginID == plugin.ID) {
-            CleanUpLayer(spec.Layer);
+            if (inPg) CleanUpLayer(spec.Layer);
             CMAP_CurrentInjections.RemoveAt(i);
             i--;
         }
@@ -185,7 +186,7 @@ void RemovedExecutingPluginsManialinkFromPlayground() {
     for (uint i = 0; i < CMAP_InjectQueue.Length; i++) {
         auto spec = CMAP_InjectQueue[i];
         if (spec.ExecPluginID == plugin.ID) {
-            CleanUpLayer(spec.Layer);
+            if (inPg) CleanUpLayer(spec.Layer);
             CMAP_InjectQueue.RemoveAt(i);
             i--;
         }
