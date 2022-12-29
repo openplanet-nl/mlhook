@@ -148,7 +148,7 @@ Events seem to propagate up, like a PlaygroundScriptHandler event gets sent to t
 ## Changelog
 
 - v0.3.3
-  - don't try to clean up a layer if the current playground is null
+  - don't try to clean up a layer if the current playground is null (fix possible crash)
   - minor refactoring to remove compiler warnings, improve safety, remove `T@ &in` usage
   - add module names to injected ML pages
 - v0.3.2
