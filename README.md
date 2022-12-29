@@ -148,7 +148,9 @@ Events seem to propagate up, like a PlaygroundScriptHandler event gets sent to t
 ## Changelog
 
 - v0.3.3
-  -
+  - don't try to clean up a layer if the current playground is null
+  - minor refactoring to remove compiler warnings, improve safety, remove `T@ &in` usage
+  - add module names to injected ML pages
 - v0.3.2
   - fix null pointer exception in hook router (rare edge case)
   - enable routing all custom events from script handler/playground (e.g., `CustomEvent(TMxSM_Race_Record_NewRecord, {"48260"}, Source=PG_SendCE)`). To hook these game events:
