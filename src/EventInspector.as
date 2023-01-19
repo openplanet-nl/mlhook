@@ -12,7 +12,7 @@ namespace EventInspector {
     bool f_invType;
 
 #if DEV
-    bool g_windowVisible = true;
+    bool g_windowVisible = false;
 #else
     bool g_windowVisible = false;
 #endif

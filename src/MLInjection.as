@@ -114,6 +114,7 @@ void CleanUpLayer(CGameUILayer@ layer) {
     layer.ManialinkPage = MinimalManialinkPageCode; // deleting layers sometimes crashes the game, this is easier
     layer.AttachId = RemnantAttachId;
     // todo: can we delete layers?
+
 }
 
 void CleanUpRemnants() {
@@ -174,22 +175,22 @@ void RemoveInjected(const string &in PageUID) {
 void RemovedExecutingPluginsManialinkFromPlayground() {
     auto inPg = GetApp().CurrentPlayground !is null;
     auto plugin = Meta::ExecutingPlugin();
-    InjectionSpec@[] toRem = {};
+    string[] toRem = {};
     for (uint i = 0; i < CMAP_CurrentInjections.Length; i++) {
         auto spec = CMAP_CurrentInjections[i];
         if (spec.ExecPluginID == plugin.ID) {
-            if (inPg) CleanUpLayer(spec.Layer);
-            CMAP_CurrentInjections.RemoveAt(i);
-            i--;
+            toRem.InsertLast(spec.PageUID);
         }
     }
     for (uint i = 0; i < CMAP_InjectQueue.Length; i++) {
         auto spec = CMAP_InjectQueue[i];
         if (spec.ExecPluginID == plugin.ID) {
-            if (inPg) CleanUpLayer(spec.Layer);
             CMAP_InjectQueue.RemoveAt(i);
             i--;
         }
+    }
+    for (uint i = 0; i < toRem.Length; i++) {
+        RemoveInjected(toRem[i]);
     }
 }
 

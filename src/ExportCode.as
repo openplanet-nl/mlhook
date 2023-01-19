@@ -94,10 +94,10 @@ namespace MLHook {
 
     class PlaygroundMLExecutionPointFeed : MLFeed {
         PlaygroundMLExecutionPointFeed() {
-            super("MLHook_Event_AngelScript_PG_Trigger");
+            super("AngelScript_PG_Trigger");
         }
 
-        ref@ Preprocess(string[] &in data) final {
+        ref@ Preprocess(MwFastBuffer<wstring> &in data) override {
             return null;
         }
     }

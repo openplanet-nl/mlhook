@@ -7,6 +7,9 @@ void Main() {
 #if SIG_DEVELOPER
     startnew(EventInspector::MainCoro); // note: does nothing as of 2022-09-27
 #endif
+#if DEV
+    MLHook::RegisterMLHook(MLHook::_ML_Hook_Feed);
+#endif
 }
 
 void OnDisabled() {

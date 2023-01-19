@@ -12,12 +12,37 @@ namespace LayersBrowser {
     void RenderInterface() {
         if (!g_windowVisible) return;
         if (UI::Begin("UILayers Browser", g_windowVisible)) {
-            RenderPgUiLayersTab();
+            UI::BeginTabBar("ui browser tabs", UI::TabBarFlags::None);
+
+            if (UI::BeginTabItem("Main Menu")) {
+                RenderMainMenuUiLayersTab();
+                UI::EndTabItem();
+            }
+
+            if (UI::BeginTabItem("Playground")) {
+                RenderPgUiLayersTab();
+                UI::EndTabItem();
+            }
+
+            UI::EndTabBar();
             UI::End();
         }
     }
 
     string draftMLPage = MinimalManialinkPageCode;
+
+    void RenderMainMenuUiLayersTab() {
+        auto mm = cast<CGameManiaPlanet>(GetApp()).MenuManager;
+        auto mccma = mm !is null ? mm.MenuCustom_CurrentManiaApp : null;
+        if (mccma is null) {
+            UI::Text("MenuCustom_CurrentManiaApp is null!\nThis is unexpected.");
+            return;
+        } else if (mccma.UILayers.Length == 0) {
+            UI::Text("No menu UI layers.");
+            return;
+        }
+        DrawManiaAppUILayers(mccma);
+    }
 
     void RenderPgUiLayersTab() {
         if (cmap is null) {
@@ -28,11 +53,15 @@ namespace LayersBrowser {
             return;
         }
 
+        DrawManiaAppUILayers(cmap);
+    }
+
+    void DrawManiaAppUILayers(CGameManiaApp@ mApp) {
         UI::Text("Create UI Layer:");
         draftMLPage = UI::InputTextMultiline("ManialinkPage", draftMLPage);
 
         if (UI::Button("UILayerCreate")) {
-            auto layer = cmap.UILayerCreate();
+            auto layer = mApp.UILayerCreate();
             layer.AttachId = "MLHook Temp " + Time::Now;
             if (draftMLPage.Length > 0) {
                 layer.ManialinkPage = draftMLPage;
@@ -49,56 +78,107 @@ namespace LayersBrowser {
         UI::Separator();
 
         if (UI::BeginChild("ui layers")) {
-            DrawLayersList(cmap.UILayers);
+            uint nCols = 6;
+            if (UI::BeginTable("layers list table", nCols, UI::TableFlags::SizingStretchProp)) {
+                UI::TableSetupColumn("Ix / MwId", UI::TableColumnFlags::WidthFixed, 75.0);
+                UI::TableSetupColumn("Visible", UI::TableColumnFlags::WidthFixed);
+                UI::TableSetupColumn("##NodBtn", UI::TableColumnFlags::WidthFixed);
+                UI::TableSetupColumn("##Running", UI::TableColumnFlags::WidthFixed);
+                UI::TableSetupColumn("ML Page Name", UI::TableColumnFlags::WidthFixed);
+                UI::TableSetupColumn("##OptsBtnsExtra", UI::TableColumnFlags::WidthStretch);
+                DrawLayersList(mApp.UILayers);
+                UI::EndTable();
+            }
         }
         UI::EndChild();
     }
 
+    string[] pageNames;
+
     void DrawLayersList(MwFastBuffer<CGameUILayer@> &in layers) {
-        for (uint i = 0; i < layers.Length; i++) {
-            auto layer = layers[i];
-            UI::PushID(layer);
+        UI::ListClipper clip(layers.Length);
+        pageNames.Resize(layers.Length);
+        while (clip.Step()) {
+            for (uint i = clip.DisplayStart; i < clip.DisplayEnd; i++) {
+                auto layer = layers[i];
+                UI::PushID(layer);
 
-            // index + MwId
-            vec2 cPos = UI::GetCursorPos();
-            UI::AlignTextToFramePadding();
-            UI::Text("" + i + (layer.IdName.Length == 0 ? "" : " \\$fd7" + layer.IdName));
-            // IsVisible checkbox
-            UI::SetCursorPos(cPos + vec2(75, 0));
-            layer.IsVisible = UI::Checkbox("", layer.IsVisible);
-            AddSimpleTooltip("IsVisible");
-            // nod explorer
-            UI::SameLine();
-            if (UI::Button(Icons::Cube + " Nod")) {
-                ExploreNod(layer);
-            }
-            UI::SameLine();
-            string isRunning = "\\$2f2" + Icons::PlayCircleO;
-            if (!layer.IsLocalPageScriptRunning) {
-                isRunning = "\\$f22" + Icons::StopCircleO;
-            }
-            UI::Text(isRunning);
-            AddSimpleTooltip("layer.IsLocalPageScriptRunning");
-            // IsRunning
+                UI::TableNextRow();
+                UI::TableNextColumn();
 
-            string mlPage = layer.ManialinkPageUtf8.SubStr(0, 127);
-            string pageName = "";
-            if (mlPage.StartsWith("\n<manialink name=\"")) {
-                auto chunks = mlPage.Split("\"");
-                if (chunks.Length > 1) {
-                    pageName = chunks[1];
+                // index + MwId
+                // vec2 cPos = UI::GetCursorPos();
+                UI::AlignTextToFramePadding();
+                UI::Text("" + i + (layer.IdName.Length == 0 ? "" : " \\$fd7" + layer.IdName));
+                // IsVisible checkbox
+                // UI::SetCursorPos(cPos + vec2(75, 0));
+
+                UI::TableNextColumn();
+                layer.IsVisible = UI::Checkbox("", layer.IsVisible);
+                AddSimpleTooltip("IsVisible");
+                // nod explorer
+                UI::TableNextColumn();
+                if (UI::Button(Icons::Cube + " Nod")) {
+                    ExploreNod(layer);
                 }
-            } else if (layer.AttachId != "Unassigned") {
-                pageName = layer.AttachId;
-            }
+                UI::TableNextColumn();
+                string isRunning = "\\$2f2" + Icons::PlayCircleO;
+                if (!layer.IsLocalPageScriptRunning) {
+                    isRunning = "\\$f22" + Icons::StopCircleO;
+                }
+                UI::Text(isRunning);
+                AddSimpleTooltip("layer.IsLocalPageScriptRunning");
+                // IsRunning
 
-            if (pageName.Length > 0) {
-                UI::SameLine();
-                UI::Text(pageName);
-            }
+                string mlPage = layer.ManialinkPageUtf8.SubStr(0, 127).Trim();
+                string pageName = "";
+                if (mlPage.StartsWith("<manialink name=\"")) {
+                    auto chunks = mlPage.Split("\"");
+                    if (chunks.Length > 1) {
+                        pageName = chunks[1];
+                    }
+                } else if (layer.AttachId != "Unassigned") {
+                    pageName = layer.AttachId;
+                }
+                pageNames[i] = pageName;
 
-            UI::PopID();
+                UI::TableNextColumn();
+                if (pageName.Length > 0) {
+                    UI::Text(pageName);
+                }
+
+                UI::TableNextColumn();
+                if (UI::Button("Copy ML")) {
+                    ref@[] ud;
+                    ud.InsertLast(layer);
+                    ud.InsertLast(array<string> = {pageName});
+                    startnew(OnClickCopyML, ud);
+                }
+
+                UI::PopID();
+            }
         }
+    }
+
+    bool CtrlButton(const string &in label, CoroutineFuncUserdata@ onClick, ref@ userData, bool sameLineAfter = true) {
+        bool clicked = UI::Button(label);
+        if (clicked) startnew(onClick, userData);
+        if (sameLineAfter) UI::SameLine();
+        return clicked;
+    }
+
+    void OnClickCopyML(ref@ incoming) {
+        auto refs = cast<ref[]>(incoming);
+        if (refs is null || refs.Length < 2) {
+            warn('refs null'); return;
+        } else if (refs.Length < 2) {
+            warn(' or bad len: ' + refs.Length); return;
+        }
+        auto layer = cast<CGameUILayer>(refs[0]);
+        auto pageName = cast<string[]>(refs[1])[0];
+
+        IO::SetClipboard(layer.ManialinkPageUtf8);
+        UI::ShowNotification(Meta::ExecutingPlugin().Name, "Copied Manialink for " + pageName);
     }
 }
 #endif
