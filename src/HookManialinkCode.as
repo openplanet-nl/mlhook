@@ -32,6 +32,22 @@ void HookManialinkCode() {
     // Dev::InterceptProc("CGameDataFileManagerScript", "Map_NadeoServices_Get", _CheckForEvents);
 #endif
     startnew(WatchForSetup);
+    startnew(SetUpMenu);
+}
+
+void SetUpMenu() {
+    while (mcma is null) yield();
+    while (mcma.UILayers.Length < 20) yield();
+    sleep(50);
+    while (!manialinkMenuHooksSetUp) {
+        yield();
+        TryManialinkMenuSetup();
+    }
+    if (targetMenuSH is null) {
+        NotifyError("Failed to set up main menu ML hook.");
+        return;
+    }
+    RunMenuInjectionOnSetup();
 }
 
 // Wait for cmap to be non-null and set up the hook.
@@ -62,9 +78,10 @@ void WatchForSetup() {
         // wait for cmap to not exist
         while (cmap !is null) {
             yield();
-            if (targetSH is null) continue;  // restart if we lose targetSH
+            if (targetSH is null) break;  // restart if we lose targetSH
         }
         dev_trace("cmap is null");
+        @targetSH = null;
     }
 }
 
@@ -73,7 +90,14 @@ void EnsureHooksEstablished() {
     while (cmap is null) yield();
     while (!uiPopulated) yield();
     while (!manialinkHooksSetUp) yield();
-    while (targetSH is null) throw('should never happen?');
+    while (targetSH is null) throw('targetSH == null; should never happen?');
+}
+
+void EnsureMenuHooksEstablished() {
+    while (mcma is null) yield();
+    while (mcma.UILayers.Length < 20) yield();
+    while (!manialinkMenuHooksSetUp) yield();
+    while (targetMenuSH is null) throw('targetMenuSH == null; should never happen?');
 }
 
 bool get_uiPopulated() {
@@ -101,6 +125,23 @@ bool get_manialinkHooksSetUp() {
     return foundCBLayer;
 }
 
+bool get_manialinkMenuHooksSetUp() {
+    if (mcma is null) return false;
+    bool foundCBLayer = false;
+    auto layers = mcma.UILayers;
+    for (uint i = 0; i < layers.Length; i++) {
+        auto layer = layers[i];
+        if (layer.AttachId == ML_Setup_AttachId) {
+            if (targetMenuSH is null) {
+                @targetMenuSH = cast<CGameManiaAppTitleLayerScriptHandler>(layer.LocalPage.ScriptHandler);
+            }
+            foundCBLayer = true;
+            break;
+        }
+    }
+    return foundCBLayer;
+}
+
 void TryManialinkSetup() {
     if (manialinkHooksSetUp) return;
     auto layer = cmap.UILayerCreate();
@@ -120,19 +161,41 @@ main() {
     @targetSH = cast<CSmArenaInterfaceManialinkScripHandler>(layer.LocalPage.ScriptHandler);
 }
 
+void TryManialinkMenuSetup() {
+    if (manialinkMenuHooksSetUp) return;
+    auto layer = mcma.UILayerCreate();
+    layer.AttachId = ML_Setup_AttachId;
+    layer.ManialinkPage = """
+<manialink name="MLHook_AngelScript_CallBack" version="3">
+<script><!--
+main() {
+    while(True) {
+        SendCustomEvent(""" + '"' + MLHook::MenuHookEventName + '"' + """, []);
+        yield;
+    }
+}
+--></script>
+</manialink>
+""";
+    @targetMenuSH = cast<CGameManiaAppTitleLayerScriptHandler>(layer.LocalPage.ScriptHandler);
+}
+
 CSmArenaInterfaceManialinkScripHandler@ targetSH;
+CGameManiaAppTitleLayerScriptHandler@ targetMenuSH;
 
 CustomEvent@[] SH_SCE_EventQueue = {};
 CustomEvent@[] PG_SCE_EventQueue = {};
+CustomEvent@[] Menu_SH_SCE_EventQueue = {};
 
 uint lastGameTime = 0;
+uint lastMenuTime = 0;
 
 funcdef void SendEventF(CustomEvent@ event);
 
 void SendEvents_RunOnlyWhenSafe() {
     if (PanicMode::IsActive) return;
     try {
-        if (targetSH is null || targetSH.Page is null) return;
+        if (cmap is null || targetSH is null || targetSH.Page is null) return;
         uint gt = targetSH.GameTime;
         if (gt != lastGameTime) {
             lastGameTime = gt;
@@ -149,16 +212,33 @@ void SendEvents_RunOnlyWhenSafe() {
     }
 }
 
-void _ProcessAllEventsFor(CustomEvent@[]@ eventQueue, SendEventF@ funcSendEvent) {
-    while (eventQueue.Length > 0) {
-        // cannot do more than one at a time
-        auto ce = eventQueue[eventQueue.Length - 1];
-        eventQueue.RemoveLast();
-        dev_trace('Processing event: ' + ce.ToString());
-        noIntercept = true;
-        funcSendEvent(ce);
-        noIntercept = false;
+void SendMenuEvents_RunOnlyWhenSafe() {
+    if (PanicMode::IsActive) return;
+    try {
+        if (mcma is null || targetMenuSH is null || targetMenuSH.Page is null) return;
+        uint gt = targetMenuSH.Now;
+        if (gt != lastMenuTime) {
+            lastMenuTime = gt;
+            // print("SendEvents_RunOnlyWhenSafe - " + gt);
+            _ProcessAllEventsFor(Menu_SH_SCE_EventQueue, function(CustomEvent@ event) {
+                targetMenuSH.SendCustomEvent(event.type, event.data);
+            });
+        }
+    } catch {
+        PanicMode::Activate("Exception in SendMenuEvents_RunOnlyWhenSafe: " + getExceptionInfo());
     }
+}
+
+void _ProcessAllEventsFor(CustomEvent@[]@ eventQueue, SendEventF@ funcSendEvent) {
+    noIntercept = true;
+    for (uint i = 0; i < eventQueue.Length; i++) {
+        // cannot do more than one at a time
+        auto ce = eventQueue[i];
+        dev_trace('Processing event: ' + ce.ToString());
+        funcSendEvent(ce);
+    }
+    noIntercept = false;
+    eventQueue.RemoveRange(0, eventQueue.Length);
 }
 
 // uint lastPendingCheck = 0;
@@ -323,6 +403,8 @@ bool _SendCustomEventSH(CMwStack &in stack, CMwNod@ nod) {
 
         if (s_type == MLHook::PlaygroundHookEventName && targetSH !is null && targetSH.Page !is null)
             SendEvents_RunOnlyWhenSafe();
+        else if (s_type == MLHook::MenuHookEventName && targetMenuSH !is null && targetMenuSH.Page !is null)
+            SendMenuEvents_RunOnlyWhenSafe();
         if (s_type.StartsWith(MLHook::LogMePrefix)) {
             print("[" + s_type.SubStr(MLHook::LogMePrefix.Length) + " via MLHook] " + FastBufferWStringToString(data));
         }

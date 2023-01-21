@@ -5,6 +5,8 @@ namespace MLHook {
     import void Queue_PG_SendCustomEvent(const string &in type, string[] &in data = {}) from "MLHook";
     // deprecated:
     import void Queue_SendCustomEvent(const string &in type, string[] &in data = {}) from "MLHook";
+    // Push an event to a Menu ScriptHandler.SendCustomEvent
+    import void Queue_Menu_SendCustomEvent(const string &in type, string[] &in data = {}) from "MLHook";
 
     // Inject some manialink code to react to custom events or whatnot
     import void InjectManialinkToPlayground(const string &in PageUID, const string &in ManialinkPage, bool replace = false) from "MLHook";
@@ -17,6 +19,8 @@ namespace MLHook {
     import void Queue_MessageManialinkPlayground(const string &in PageUID, const string &in msg) from "MLHook";
     import void Queue_MessageManialinkPlayground(const string &in PageUID, string[] &in msgs) from "MLHook";
     import void Queue_MessageManialinkMenu(const string &in PageUID, const string &in msg) from "MLHook";
+    import void Queue_MessageManialinkMenu(const string &in PageUID, string[] &in msgs) from "MLHook";
+
     // deprecated:
     import void Queue_ToInjectedManialink(const string &in PageUID, const string &in msg) from "MLHook";
 
@@ -26,6 +30,7 @@ namespace MLHook {
     import const string get_LogMePrefix() from "MLHook";
 
     import const string get_PlaygroundHookEventName() from "MLHook";
+    import const string get_MenuHookEventName() from "MLHook";
 
     // register some code that runs when particular events are detected
     import void RegisterMLHook(HookMLEventsByType@ hookObj, const string &in type = "", bool isNadeoEvent = false) from "MLHook";

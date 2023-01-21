@@ -9,20 +9,22 @@ namespace MLHook {
         warn('deprecated, use Queue_PG_SendCustomEvent');
         Queue_PG_SendCustomEvent(type, data);
     }
+    void Queue_Menu_SendCustomEvent(const string &in type, string[] &in data = {}) {
+        Menu_SH_SCE_EventQueue.InsertLast(CustomEvent(type, data));
+    }
 
 
     void InjectManialinkToPlayground(const string &in PageUID, const string &in ManialinkPage, bool replace = false) {
         CMAP_InjectQueue.InsertLast(InjectionSpec(PageUID, ToMLScript(ManialinkPage), Meta::ExecutingPlugin().ID, replace));
     }
     void InjectManialinkToMenu(const string &in PageUID, const string &in ManialinkPage, bool replace = false) {
-        NotifyTodo("InjectManialinkToMenu not yet implemented - msg @XertroV");
-        // CMAP_InjectQueue.InsertLast(InjectionSpec(PageUID, ToMLScript(ManialinkPage), Meta::ExecutingPlugin().ID, replace));
+        Menu_InjectQueue.InsertLast(InjectionSpec(PageUID, ToMLScript(ManialinkPage), Meta::ExecutingPlugin().ID, replace));
     }
     void RemoveInjectedMLFromPlayground(const string &in PageUID) {
-        RemoveInjected(PageUID);
+        RemoveInjected(cmap, CMAP_CurrentInjections, PageUID);
     }
     void RemoveInjectedMLFromMenu(const string &in PageUID) {
-        NotifyTodo("RemoveInjectedMLFromMenu not yet implemented - msg @XertroV");
+        RemoveInjected(mcma, Menu_CurrentInjections, PageUID);
     }
 
 
@@ -38,11 +40,17 @@ namespace MLHook {
     void Queue_MessageManialinkPlayground(const string &in PageUID, string[] &in msgs) {
         outboundMLMessages.InsertLast(OutboundMessage(PageUID, msgs));
     }
-
     void Queue_MessageManialinkMenu(const string &in PageUID, const string &in msg) {
-        NotifyTodo("Queue_MessageManialinkMenu not yet implemented - msg @XertroV");
-        // outboundMLMessages.InsertLast(OutboundMessage(PageUID, msg));
+        outboundMenuMLMessages.InsertLast(OutboundMessage(PageUID, {msg}));
     }
+    void Queue_MessageManialinkMenu(const string &in PageUID, string[] &in msgs) {
+        outboundMenuMLMessages.InsertLast(OutboundMessage(PageUID, msgs));
+    }
+
+    // void Queue_MessageManialinkMenu(const string &in PageUID, const string &in msg) {
+    //     NotifyTodo("Queue_MessageManialinkMenu not yet implemented - msg @XertroV");
+    //     // outboundMLMessages.InsertLast(OutboundMessage(PageUID, msg));
+    // }
 
     const string get_GlobalPrefix() {return "MLHook_";}
     const string get_EventPrefix() {return "MLHook_Event_";}
@@ -52,6 +60,8 @@ namespace MLHook {
 
     // note: hardcoded in PlaygroundMLExecutionPointFeed
     const string get_PlaygroundHookEventName() { return EventPrefix + "AngelScript_PG_Trigger"; }
+
+    const string get_MenuHookEventName() { return EventPrefix + "AngelScript_Menu_Trigger"; }
 
     void RegisterMLHook(HookMLEventsByType@ hookObj, const string &in type = "", bool isNadeoEvent = false) {
         HookRouter::RegisterMLHook(hookObj, type, isNadeoEvent);
@@ -63,11 +73,13 @@ namespace MLHook {
 
     void UnregisterMLHooksAndRemoveInjectedML() {
         RemovedExecutingPluginsManialinkFromPlayground();
+        RemovedExecutingPluginsManialinkFromMenu();
         HookRouter::UnregisterExecutingPluginsMLHooks();
     }
 
     void RemoveAllInjectedML() {
         RemovedExecutingPluginsManialinkFromPlayground();
+        RemovedExecutingPluginsManialinkFromMenu();
     }
 
 
@@ -75,8 +87,8 @@ namespace MLHook {
         return Meta::GetPluginFromID("MLHook").Version;
     }
 
-    string[] versionsAlsoCompatible = {"0.3.0", "0.3.1", "0.3.2", "0.3.3"
-        , "0.3.4"
+    string[] versionsAlsoCompatible = {"0.3.0", "0.3.1", "0.3.2", "0.3.3", "0.3.4"
+        , "0.4.0", "0.4.1"
         , Meta::ExecutingPlugin().Version // add the current version in case of forgetfullness
     };
 

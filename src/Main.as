@@ -25,7 +25,10 @@ void MainCoro() {
         yield();
         yield();
         RunPendingInjections();
+        RunPendingMenuInjections();
+        //
         RunQueuedMLDataInjections();
+        RunQueuedMenuMLDataInjections();
     }
 }
 
