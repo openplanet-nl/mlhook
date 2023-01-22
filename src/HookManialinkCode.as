@@ -143,7 +143,7 @@ bool get_manialinkMenuHooksSetUp() {
 }
 
 void TryManialinkSetup() {
-    if (manialinkHooksSetUp) return;
+    if (cmap is null || manialinkHooksSetUp) return;
     auto layer = cmap.UILayerCreate();
     layer.AttachId = ML_Setup_AttachId;
     layer.ManialinkPage = """
@@ -162,7 +162,7 @@ main() {
 }
 
 void TryManialinkMenuSetup() {
-    if (manialinkMenuHooksSetUp) return;
+    if (mcma is null || manialinkMenuHooksSetUp) return;
     auto layer = mcma.UILayerCreate();
     layer.AttachId = ML_Setup_AttachId;
     layer.ManialinkPage = """
