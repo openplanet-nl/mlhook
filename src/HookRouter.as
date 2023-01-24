@@ -81,21 +81,28 @@ namespace HookRouter {
     void OnHookRegistered(MLHook::HookMLEventsByType@ hookObj) {
         auto plugin = Meta::ExecutingPlugin();
         auto hooks = GetHooksByPlugin(plugin.ID);
-        if (hooks.FindByRef(hookObj) < 0) {
+        // if we already have a reference to this hook for this plugin don't add it again (e.g., b/c it watches multiple event types)
+        auto ix = hooks.FindByRef(hookObj);
+        if (ix < 0) {
             hooks.InsertLast(hookObj);
         }
     }
 
+    // for a plugin's hooks, set all to null, set array length to 0, and delete the plugin's entry from the plugin->hooks map
     void UnregisterExecutingPluginsMLHooks() {
         auto plugin = Meta::ExecutingPlugin();
         if (hooksByPlugin.Exists(plugin.ID)) {
             auto hooks = GetHooksByPlugin(plugin.ID);
             for (uint i = 0; i < hooks.Length; i++) {
                 UnregisterMLHook(hooks[i]);
+                @hooks[i] = null;
             }
+            hooks.RemoveRange(0, hooks.Length);
         }
+        hooksByPlugin.Delete(plugin.ID);
     }
 
+    // unregisters a hook object by checking all event types' list of hooks.
     void UnregisterMLHook(MLHook::HookMLEventsByType@ hookObj) {
         if (hookObj is null) return;
         auto types = hooksByType.GetKeys();
@@ -103,13 +110,14 @@ namespace HookRouter {
         for (uint i = 0; i < types.Length; i++) {
             auto hookType = types[i];
             auto hooks = GetHooksByType(hookType, false);
-            // auto hooks = cast<array<MLHook::HookMLEventsByType@>>(hooksByType[hookType]);
-            if (hooks is null) continue;
             int hookIx = hooks.FindByRef(hookObj);
-            if (hookIx >= 0) hooks.RemoveAt(hookIx);
+            while (hookIx >= 0) {
+                hooks.RemoveAt(hookIx);
+                remTypes.InsertLast(hookType);
+                hookIx = hooks.FindByRef(hookObj);
+            }
             if (hooks.Length == 0) {
                 hooksByType.Delete(hookType);
-                remTypes.InsertLast(hookType);
             }
         }
         if (remTypes.Length > 0) {
