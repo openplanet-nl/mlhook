@@ -102,8 +102,12 @@ void EnsureMenuHooksEstablished() {
 
 bool get_uiPopulated() {
     if (cmap is null) return false;
-    if (cmap.UILayers.Length < 10) return false;
-    return true;
+    if (GetApp().CurrentPlayground is null) return false;
+    // 2 by default, it seems; but if there are not more than 2 here, there will be some elsewhere (probably)
+    if (cmap.UILayers.Length > 2) return true;
+    if (GetApp().CurrentPlayground.UIConfigs.Length == 0) return false;
+    if (GetApp().CurrentPlayground.UIConfigs[0].UILayers.Length > 0) return true;
+    return false;
 }
 
 const string ML_Setup_AttachId = MLHook::GlobalPrefix + "AngelScript_CallBack";

@@ -80,6 +80,7 @@ void RunPendingMenuInjections() {
 
 void RerunInjectionsOnSetupCoro() {
     while (!uiPopulated) yield();
+    // print("Injecting nb: " + CMAP_CurrentInjections.Length);
     for (uint i = 0; i < CMAP_CurrentInjections.Length; i++) {
         InjectIfNotPresent(cmap, CMAP_CurrentInjections[i]);
     }
@@ -168,6 +169,7 @@ void RemoveAllInjections() {
 }
 
 void RemoveInjected(CGameManiaApp@ mApp, InjectionSpec@[]@ currentInjections, const string &in PageUID) {
+    // dev_trace("Removing injection: " + PageUID);
     // don't reinject it
     for (uint i = 0; i < currentInjections.Length; i++) {
         auto item = currentInjections[i];
