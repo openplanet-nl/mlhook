@@ -99,7 +99,7 @@ namespace LayersBrowser {
         UI::ListClipper clip(layers.Length);
         pageNames.Resize(layers.Length);
         while (clip.Step()) {
-            for (uint i = clip.DisplayStart; i < clip.DisplayEnd; i++) {
+            for (int i = clip.DisplayStart; i < clip.DisplayEnd; i++) {
                 auto layer = layers[i];
                 UI::PushID(layer);
 
