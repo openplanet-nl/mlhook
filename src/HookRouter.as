@@ -98,8 +98,8 @@ namespace HookRouter {
                 @hooks[i] = null;
             }
             hooks.RemoveRange(0, hooks.Length);
+            hooksByPlugin.Delete(plugin.ID);
         }
-        hooksByPlugin.Delete(plugin.ID);
     }
 
     // unregisters a hook object by checking all event types' list of hooks.
