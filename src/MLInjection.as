@@ -118,7 +118,7 @@ void InjectIfNotPresent(CGameManiaApp@ mApp, InjectionSpec@ spec) {
         }
         return;
     }
-    @layer = cmap.UILayerCreate();
+    @layer = mApp.UILayerCreate();
     layer.AttachId = _attachId;
     layer.ManialinkPage = spec.ManialinkPage;
     @spec.Layer = layer;
@@ -323,7 +323,7 @@ void RunQueuedMenuMLDataInjections() {
     if (mcma is null || outboundMenuMLMessages.Length == 0) return;
     EnsureMenuHooksEstablished();
     RunPendingMenuInjections();
-    auto layer = UpdateLayerWAttachIdOrMake(mcma, MLHook_DataInjectionAttachId, GenManialinkPageForOutbound(outboundMLMessages, "LocalUser"), false);
+    auto layer = UpdateLayerWAttachIdOrMake(mcma, MLHook_DataInjectionAttachId, GenManialinkPageForOutbound(outboundMenuMLMessages, "LocalUser"), false);
 }
 
 CGameUILayer@ UpdateLayerWAttachIdOrMake(CGameManiaApp@ mApp, const string &in AttachId, wstring &in ManialinkPage, bool canBeRunning = true) {
