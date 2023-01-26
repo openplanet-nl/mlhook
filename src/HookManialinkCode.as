@@ -65,6 +65,7 @@ void WatchForSetup() {
         while (!uiPopulated) {
             yield();
         }
+        yield();
         // wait for script hooks to be set up
         while (!manialinkHooksSetUp) {
             yield();
