@@ -65,11 +65,11 @@ void WatchForSetup() {
         while (!uiPopulated) {
             yield();
         }
-        yield();
+        sleep(100);
         // wait for script hooks to be set up
         while (!manialinkHooksSetUp) {
-            yield();
             TryManialinkSetup();
+            yield();
         }
         if (targetSH is null) continue;  // restart if we didn't get targetSH properly
         dev_trace("ML hook set up");
