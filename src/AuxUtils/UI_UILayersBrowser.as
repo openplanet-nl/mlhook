@@ -52,7 +52,6 @@ namespace LayersBrowser {
             UI::Text("Waiting for UILayers...");
             return;
         }
-
         DrawManiaAppUILayers(cmap);
     }
 
@@ -86,7 +85,7 @@ namespace LayersBrowser {
                 UI::TableSetupColumn("##Running", UI::TableColumnFlags::WidthFixed);
                 UI::TableSetupColumn("ML Page Name", UI::TableColumnFlags::WidthFixed);
                 UI::TableSetupColumn("##OptsBtnsExtra", UI::TableColumnFlags::WidthStretch);
-                DrawLayersList(mApp.UILayers);
+                DrawLayersList(mApp);
                 UI::EndTable();
             }
         }
@@ -95,16 +94,21 @@ namespace LayersBrowser {
 
     string[] pageNames;
 
-    void DrawLayersList(MwFastBuffer<CGameUILayer@> &in layers) {
-        UI::ListClipper clip(layers.Length);
-        pageNames.Resize(layers.Length);
+    void DrawLayersList(CGameManiaApp@ mApp) {
+        uint nbLayers = mApp.UILayers.Length;
+        UI::ListClipper clip(nbLayers);
+        pageNames.Resize(nbLayers);
         while (clip.Step()) {
             for (int i = clip.DisplayStart; i < clip.DisplayEnd; i++) {
-                auto layer = layers[i];
-                UI::PushID(layer);
+                if (i >= nbLayers) continue;
+                auto @layer = mApp.UILayers[i];
 
                 UI::TableNextRow();
                 UI::TableNextColumn();
+
+                if (layer is null) continue;
+
+                UI::PushID(layer);
 
                 // index + MwId
                 // vec2 cPos = UI::GetCursorPos();
@@ -130,7 +134,7 @@ namespace LayersBrowser {
                 AddSimpleTooltip("layer.IsLocalPageScriptRunning");
                 // IsRunning
 
-                string mlPage = layer.ManialinkPageUtf8.SubStr(0, 127).Trim();
+                string mlPage = layer.ManialinkPageUtf8.SubStr(0, Math::Min(layer.ManialinkPageUtf8.Length, 127)).Trim();
                 string pageName = "";
                 if (mlPage.StartsWith("<manialink name=\"")) {
                     auto chunks = mlPage.Split("\"");
