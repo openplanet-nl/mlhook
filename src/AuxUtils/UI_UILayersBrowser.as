@@ -92,12 +92,9 @@ namespace LayersBrowser {
         UI::EndChild();
     }
 
-    string[] pageNames;
-
     void DrawLayersList(CGameManiaApp@ mApp) {
-        uint nbLayers = mApp.UILayers.Length;
+        int nbLayers = mApp.UILayers.Length;
         UI::ListClipper clip(nbLayers);
-        pageNames.Resize(nbLayers);
         while (clip.Step()) {
             for (int i = clip.DisplayStart; i < clip.DisplayEnd; i++) {
                 if (i >= nbLayers) continue;
@@ -105,14 +102,22 @@ namespace LayersBrowser {
 
                 UI::TableNextRow();
                 UI::TableNextColumn();
+                UI::AlignTextToFramePadding();
 
-                if (layer is null) continue;
+                if (layer is null || layer.ManialinkPage.Length < 10) {
+                    UI::Text("" + i + ". Skipped");
+                    UI::TableNextColumn();
+                    UI::TableNextColumn();
+                    UI::TableNextColumn();
+                    UI::TableNextColumn();
+                    UI::Text("Empty page. Attach ID: " + layer.AttachId);
+                    continue;
+                }
 
                 UI::PushID(layer);
 
                 // index + MwId
                 // vec2 cPos = UI::GetCursorPos();
-                UI::AlignTextToFramePadding();
                 UI::Text("" + i + (layer.IdName.Length == 0 ? "" : " \\$fd7" + layer.IdName));
                 // IsVisible checkbox
                 // UI::SetCursorPos(cPos + vec2(75, 0));
@@ -133,8 +138,8 @@ namespace LayersBrowser {
                 UI::Text(isRunning);
                 AddSimpleTooltip("layer.IsLocalPageScriptRunning");
                 // IsRunning
-
-                string mlPage = layer.ManialinkPageUtf8.SubStr(0, Math::Min(layer.ManialinkPageUtf8.Length, 127)).Trim();
+                auto pageStart = layer.ManialinkPageUtf8.SubStr(0, Math::Min(layer.ManialinkPage.Length, 127));
+                string mlPage = pageStart.Length > 10 ? pageStart.Trim() : pageStart;
                 string pageName = "";
                 if (mlPage.StartsWith("<manialink name=\"")) {
                     auto chunks = mlPage.Split("\"");
@@ -144,7 +149,6 @@ namespace LayersBrowser {
                 } else if (layer.AttachId != "Unassigned") {
                     pageName = layer.AttachId;
                 }
-                pageNames[i] = pageName;
 
                 UI::TableNextColumn();
                 if (pageName.Length > 0) {
