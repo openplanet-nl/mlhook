@@ -18,6 +18,8 @@ namespace MLHook {
     // Send a message to some manialink code that you injected
     import void Queue_MessageManialinkPlayground(const string &in PageUID, const string &in msg) from "MLHook";
     import void Queue_MessageManialinkPlayground(const string &in PageUID, string[] &in msgs) from "MLHook";
+    import void Queue_MessageManialinkPlaygroundServer(const string &in PageUID, const string &in msg) from "MLHook";
+    import void Queue_MessageManialinkPlaygroundServer(const string &in PageUID, string[] &in msgs) from "MLHook";
     import void Queue_MessageManialinkMenu(const string &in PageUID, const string &in msg) from "MLHook";
     import void Queue_MessageManialinkMenu(const string &in PageUID, string[] &in msgs) from "MLHook";
 
@@ -26,6 +28,7 @@ namespace MLHook {
 
     import const string get_EventPrefix() from "MLHook";
     import const string get_QueuePrefix() from "MLHook";
+    import const string get_NetQueuePrefix() from "MLHook";
     import const string get_DebugPrefix() from "MLHook";
     import const string get_LogMePrefix() from "MLHook";
 

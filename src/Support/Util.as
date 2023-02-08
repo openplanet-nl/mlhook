@@ -38,7 +38,14 @@ const string ArrUintToString(const uint[] &in ss) {
 
 class StringAccumulator {
     string[] items = {};
-    StringAccumulator() {}
+    string name;
+    string qFor;
+    bool isNetwrite;
+    StringAccumulator(const string &in name, const string &in qFor, bool isNetwrite) {
+        this.name = name;
+        this.qFor = qFor;
+        this.isNetwrite = isNetwrite;
+    }
     void Add(const string &in item) {
         items.InsertLast(item);
     }

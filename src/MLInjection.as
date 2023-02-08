@@ -248,13 +248,19 @@ MESSAGES FROM AS TO ML
 
 class OutboundMessage {
     private string _PageUID;
-    private string[] _msgs;
+    private string[]@ _msgs;
     private string _queueName;
     private bool sent = false;
-    OutboundMessage(const string &in PageUID, string[] &in msgs) {
-        this._queueName = GenQueueName(PageUID);
+    private bool _isNetwrite = false;
+    OutboundMessage(const string &in PageUID, string[] &in msgs, bool isNetwrite = false) {
+        this._queueName = GenQueueName(PageUID, isNetwrite);
         this._PageUID = PageUID;
-        this._msgs = msgs;
+        @this._msgs = msgs;
+        this._isNetwrite = isNetwrite;
+        for (uint i = 0; i < _msgs.Length; i++) {
+            // Quick and dirty way to escape strings -- these now include surrounding quotes
+            _msgs[i] = Json::Write(_msgs[i]);
+        }
     }
     const string get_PageUID() {
         return this._PageUID;
@@ -265,6 +271,9 @@ class OutboundMessage {
     const string get_queueName() {
         return this._queueName;
     }
+    const string QueueTypeAndName { get { return (_isNetwrite ? "netwrite Text[][] " : "Text[][] ") + _queueName; }}
+    bool IsNetwrite { get { return _isNetwrite; }}
+
     void MarkSent() {
         sent = true;
     }
@@ -273,30 +282,33 @@ class OutboundMessage {
 OutboundMessage@[] outboundMLMessages = {};
 OutboundMessage@[] outboundMenuMLMessages = {};
 
-const string GenQueueName(const string &in PageUID) {
-    return MLHook::QueuePrefix + PageUID;
+const string GenQueueName(const string &in PageUID, bool isNetwrite = false) {
+    return (isNetwrite ? MLHook::NetQueuePrefix : MLHook::QueuePrefix) + PageUID;
 }
 
-const string GenManialinkPageForOutbound(OutboundMessage@[]@ outboundMsgs, const string &in declareQFor) {
+const string GenManialinkPageForOutbound(OutboundMessage@[]@ outboundMsgs, const string &in declareQFor, const string &in declareNWQFor = "UI") {
     if (outboundMsgs.Length == 0) return "";
     dictionary msgsFor = dictionary();
     string _outboundMsgs = "";
     for (uint i = 0; i < outboundMsgs.Length; i++) {
         auto item = outboundMsgs[i];
-        if (!msgsFor.Exists(item.queueName))
-            msgsFor[item.queueName] = StringAccumulator();
-        cast<StringAccumulator>(msgsFor[item.queueName]).Add("[\"" + string::Join(item.msgs, '","') + "\"]");
+        if (!msgsFor.Exists(item.QueueTypeAndName))
+            @msgsFor[item.QueueTypeAndName] = StringAccumulator(item.queueName, item.IsNetwrite ? declareNWQFor : declareQFor, item.IsNetwrite);
+        // item.msgs is a json encoded string, so already includes the quotes.
+        cast<StringAccumulator>(msgsFor[item.QueueTypeAndName]).Add("[" + string::Join(item.msgs, ',') + "]");
     }
+
     trace('MLHook preparing ' + outboundMsgs.Length + ' outbound messages to ML');
     outboundMsgs.RemoveRange(0, outboundMsgs.Length);
+
     auto keys = msgsFor.GetKeys();
     for (uint i = 0; i < keys.Length; i++) {
-        auto qName = keys[i];
-        _outboundMsgs += "  declare Text[][] " + qName + " for " + declareQFor + ";\n";
-        StringAccumulator@ sa = cast<StringAccumulator>(msgsFor[qName]);
+        auto qTypeAndName = keys[i];
+        StringAccumulator@ sa = cast<StringAccumulator>(msgsFor[qTypeAndName]);
+        _outboundMsgs += "  declare " + qTypeAndName + " for " + sa.qFor + ";\n";
+        if (sa.isNetwrite) _outboundMsgs += "  declare netwrite Integer " + sa.name + "_Last for " + sa.qFor + "; " + sa.name + "_Last += 1;\n";
         for (uint j = 0; j < sa.items.Length; j++) {
-            auto item = sa.items[j];
-            _outboundMsgs += "  " + qName + ".add(" + item + ");\n";
+            _outboundMsgs += "  " + sa.name + ".add(" + sa.items[j] + ");\n";
         }
     }
     return ("\n<manialink name=\"MLHook_DataInjection\" version=\"3\"><script><!-- \n"

@@ -40,6 +40,12 @@ namespace MLHook {
     void Queue_MessageManialinkPlayground(const string &in PageUID, string[] &in msgs) {
         outboundMLMessages.InsertLast(OutboundMessage(PageUID, msgs));
     }
+    void Queue_MessageManialinkPlaygroundServer(const string &in PageUID, const string &in msg) {
+        outboundMLMessages.InsertLast(OutboundMessage(PageUID, {msg}, true));
+    }
+    void Queue_MessageManialinkPlaygroundServer(const string &in PageUID, string[] &in msgs) {
+        outboundMLMessages.InsertLast(OutboundMessage(PageUID, msgs, true));
+    }
     void Queue_MessageManialinkMenu(const string &in PageUID, const string &in msg) {
         outboundMenuMLMessages.InsertLast(OutboundMessage(PageUID, {msg}));
     }
@@ -55,6 +61,7 @@ namespace MLHook {
     const string get_GlobalPrefix() {return "MLHook_";}
     const string get_EventPrefix() {return "MLHook_Event_";}
     const string get_QueuePrefix() {return "MLHook_Inbound_";}
+    const string get_NetQueuePrefix() {return "MLHook_NetQueue_";}
     const string get_DebugPrefix() {return "MLHook_Debug_";}
     const string get_LogMePrefix() {return "MLHook_LogMe_";}
 
