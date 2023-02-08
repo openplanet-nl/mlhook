@@ -7,6 +7,6 @@ version  = "0.4.1"
 [script]
 #__DEFINES__
 module = "MLHook"
-exports = [ "Exports/Export.as" ] # no src/ prefix b/c of build.sh
-shared_exports = [ "Exports/ExportShared.as" ] # no src/ prefix b/c of build.sh
+exports = [ "Exports/MLHook_Export.as" ] # no src/ prefix b/c of build.sh
+shared_exports = [ "Exports/MLHook_ExportShared.as" ] # no src/ prefix b/c of build.sh
 # dependencies = [ 'MLHook' ]
