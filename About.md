@@ -20,7 +20,7 @@ This has been left out for the sake of convenience thus far (the only exposed me
 ### Primary Functions
 
 - AngelScript -> ManiaLink / ManiaScript
-  - Messages serialized as code and sent via dedicated ML page which 0writes that data to a known `declare X for ClientUI` (in the playground, the location is different when in the menu). This is done once every 2 frames to provide some buffer as the objects are completely overwritten each time.
+  - Messages serialized as code and sent via dedicated ML page which 0writes that data to a known `declare X for ClientUI` (in the playground, the location is different when in the menu). This is done once every 2 frames to provide some buffer as the objects are completely overwritten each time. Using `netwrite` to communicate with the server's game script is supported.
   - `MLInjection.as`
 
 - ManiaLink -> AngelScript
