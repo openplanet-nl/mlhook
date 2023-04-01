@@ -31,7 +31,7 @@ Current Features:
 
 *(Note: additionally, see the section at the bottom)*
 
-[Suggestions/feedback requested!](https://github.com/XertroV/tm-ml-to-angelscript-hook/issues)
+[Suggestions/feedback requested!](https://github.com/XertroV/tm-mlhook/issues)
 * Is the API bad or missing something?
 * Any features that would let you do things you can't atm?
 * What manialink elements would you interact with that you can't?
@@ -57,7 +57,7 @@ Authors: XertroV
 
 Suggestions/feedback: @XertroV on Openplanet discord
 
-Code/issues: [https://github.com/XertroV/tm-ml-to-angelscript-hook](https://github.com/XertroV/tm-ml-to-angelscript-hook)
+Code/issues: [https://github.com/XertroV/tm-mlhook](https://github.com/XertroV/tm-mlhook)
 
 GL HF
 
