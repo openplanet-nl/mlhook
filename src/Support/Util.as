@@ -1,6 +1,7 @@
 enum Cmp {Lt = -1, Eq = 0, Gt = 1}
 
-MwFastBuffer<wstring> ArrStringToFastBufferWString(const string[] &in ss) {
+MwFastBuffer<wstring> ArrStringToFastBufferWString(const string[] &in ss)
+{
     MwFastBuffer<wstring> ret;
     for (uint i = 0; i < ss.Length; i++) {
         ret.Add(wstring(ss[i]));
@@ -8,7 +9,8 @@ MwFastBuffer<wstring> ArrStringToFastBufferWString(const string[] &in ss) {
     return ret;
 }
 
-const string FastBufferWStringToString(MwFastBuffer<wstring> &in fbws) {
+const string FastBufferWStringToString(MwFastBuffer<wstring> &in fbws)
+{
     string[] items = array<string>(fbws.Length);
     for (uint i = 0; i < fbws.Length; i++) {
         auto item = fbws[i];
@@ -17,7 +19,8 @@ const string FastBufferWStringToString(MwFastBuffer<wstring> &in fbws) {
     return "{" + string::Join(items, ', ') + "}";
 }
 
-const string ArrStringToString(const string[] &in ss) {
+const string ArrStringToString(const string[] &in ss)
+{
     string[] items = array<string>(ss.Length);
     for (uint i = 0; i < ss.Length; i++) {
         auto item = ss[i];
@@ -26,7 +29,8 @@ const string ArrStringToString(const string[] &in ss) {
     return "{" + string::Join(items, ', ') + "}";
 }
 
-const string ArrUintToString(const uint[] &in ss) {
+const string ArrUintToString(const uint[] &in ss)
+{
     string[] items = array<string>(ss.Length);
     for (uint i = 0; i < ss.Length; i++) {
         auto item = ss[i];
@@ -36,17 +40,20 @@ const string ArrUintToString(const uint[] &in ss) {
 }
 
 
-class StringAccumulator {
+class StringAccumulator
+{
     string[] items = {};
     string name;
     string qFor;
     bool isNetwrite;
-    StringAccumulator(const string &in name, const string &in qFor, bool isNetwrite) {
+    StringAccumulator(const string &in name, const string &in qFor, bool isNetwrite)
+    {
         this.name = name;
         this.qFor = qFor;
         this.isNetwrite = isNetwrite;
     }
-    void Add(const string &in item) {
+    void Add(const string &in item)
+    {
         items.InsertLast(item);
     }
 }

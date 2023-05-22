@@ -1,4 +1,5 @@
-namespace EventInspector {
+namespace EventInspector
+{
     CustomEvent@[] events = {};
     uint totalEvents = 0;
     dictionary recentEventHashLookup;
@@ -18,24 +19,29 @@ namespace EventInspector {
 #endif
     bool g_capturing = false;
 
-    bool get_ShouldCapture() {
+    bool get_ShouldCapture()
+    {
         return g_capturing;
     }
 
-    void StopCapture() {
+    void StopCapture()
+    {
         g_capturing = false;
     }
 
-    bool get_IsCapturing() {
+    bool get_IsCapturing()
+    {
         return g_capturing;
     }
 
-    void MainCoro() {
+    void MainCoro()
+    {
         // does nothing atm
     }
 
     // main ingestion functions in CaptureTypes.as
-    void _RecordCaptured(CustomEvent@ event) {
+    void _RecordCaptured(CustomEvent@ event)
+    {
         // dev_trace("_RecCaptured: " + event.ToString());
         totalEvents++;
         eventSources[tostring(event.source)] = uint(eventSources[tostring(event.source)]) + 1;
@@ -52,13 +58,15 @@ namespace EventInspector {
         _FilterAddEvent(event);
     }
 
-    void _FilterAddEvent(CustomEvent@ event) {
+    void _FilterAddEvent(CustomEvent@ event)
+    {
         if (_EventMeetsFilterConditions(event)) {
             f_events.InsertLast(event);
         }
     }
 
-    void ResetEventInspector() {
+    void ResetEventInspector()
+    {
         events.RemoveRange(0, events.Length);
         recentEventHashLookup = dictionary();
         eventTypes.DeleteAll();
@@ -71,26 +79,30 @@ namespace EventInspector {
         f_invType = false;
     }
 
-    bool get_IsFilterActive() {
+    bool get_IsFilterActive()
+    {
         return false
             || f_source != EventSource::Any
             || f_type.Length > 0
             ;
     }
 
-    array<CustomEvent@> get_filteredEvents() {
+    array<CustomEvent@> get_filteredEvents()
+    {
         if (!IsFilterActive)
             return events;
         return f_events;
     }
 
-    bool _EventMeetsFilterConditions(CustomEvent@ event) {
+    bool _EventMeetsFilterConditions(CustomEvent@ event)
+    {
         if ((f_type != "" && (!f_invType == !event.s_type.Contains(f_type)))) return false;
         if ((f_source != EventSource::Any && (!f_invSource == (event.source != f_source)))) return false;
         return true;
     }
 
-    void UpdateFilter() {
+    void UpdateFilter()
+    {
         CustomEvent@[] tmp = {};
         for (uint i = 0; i < events.Length; i++) {
             auto item = events[i];
@@ -100,14 +112,16 @@ namespace EventInspector {
         f_events = tmp;
     }
 
-    void UpdateFilterSoon() {
+    void UpdateFilterSoon()
+    {
         yield();
         yield();
         UpdateFilter();
     }
 
     uint lastEventCount = 0;
-    void RenderMenuMainCapturingNotice() {
+    void RenderMenuMainCapturingNotice()
+    {
         if (g_capturing) {
             if (UI::BeginMenu("\\$f00" + Icons::Circle + "\\$z Event Capture: (" + lastEventCount + ")")) {
                 // can't add tooltip here?
@@ -134,7 +148,8 @@ namespace EventInspector {
         }
     }
 
-    void RenderEventInspectorMenuItem() {
+    void RenderEventInspectorMenuItem()
+    {
         if (UI::MenuItem("\\$2f8" + Icons::ListAlt + "\\$z ML Event Inspector", "", g_windowVisible)) {
             g_windowVisible = !g_windowVisible;
         }
@@ -142,7 +157,8 @@ namespace EventInspector {
 
 
     // draw events and toggle capture
-    void RenderEventInspectorWindow() {
+    void RenderEventInspectorWindow()
+    {
         if (!g_windowVisible) return;
         UI::SetNextWindowSize(1200, 500, UI::Cond::FirstUseEver); // Appearing
         if (UI::Begin("Manialink Event Inspector", g_windowVisible)) {
@@ -289,7 +305,8 @@ namespace EventInspector {
         UI::End();
     }
 
-    void MaybeDrawNodExplorerBtnFor(const string &in label, CMwNod@ nod, bool sameLine = true) {
+    void MaybeDrawNodExplorerBtnFor(const string &in label, CMwNod@ nod, bool sameLine = true)
+    {
         if (sameLine) UI::SameLine();
         if (nod !is null && UI::Button(Icons::Cube + " " + label + " Nod")) {
             ExploreNod(nod);

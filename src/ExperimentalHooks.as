@@ -1,4 +1,5 @@
-bool _CheckForEvents(CMwStack &in stack) {
+bool _CheckForEvents(CMwStack &in stack)
+{
     if (PanicMode::IsActive) return true;
     try {
         CheckForPendingEvents();

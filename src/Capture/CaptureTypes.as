@@ -62,15 +62,18 @@ done? seems not to be used
 
 */
 
-namespace EventInspector {
-    void CaptureEvent(wstring &in type, MwFastBuffer<wstring> &in data, EventSource &in source, const string &in annotation = "", CGameUILayer@ layer = null, CGameEditorPluginHandle@ handle = null) {
+namespace EventInspector
+{
+    void CaptureEvent(wstring &in type, MwFastBuffer<wstring> &in data, EventSource &in source, const string &in annotation = "", CGameUILayer@ layer = null, CGameEditorPluginHandle@ handle = null)
+    {
         if (!ShouldCapture) return;
         auto event = CustomEvent(type, data, source, annotation, layer, handle);
         _RecordCaptured(event);
     }
 
     // 2022-09-29 seems to be working
-    void CaptureMLScriptEvent(CGameManialinkScriptEvent@ event) {
+    void CaptureMLScriptEvent(CGameManialinkScriptEvent@ event)
+    {
         if (!ShouldCapture) return;
         string[] data = {tostring(event.KeyCode), event.KeyName, event.CharPressed, event.ControlId, tostring(event.MenuNavAction), event.IsActionAutoRepeat ? 't' : 'f', event.CustomEventType, FastBufferWStringToString(event.CustomEventData), event.PluginCustomEventType, FastBufferWStringToString(event.PluginCustomEventData)};
         auto ce = CustomEvent("CGameManialinkScriptEvent::EType::" + tostring(event.Type), ArrStringToFastBufferWString(data), EventSource::ML_SE);
@@ -131,7 +134,8 @@ namespace EventInspector {
 
     // todo: should actually capture some stuff but doesn't
     // 2022-09-29 seems to be working w/
-    void CaptureMAScriptEvent(CGameManiaAppScriptEvent@ event) {
+    void CaptureMAScriptEvent(CGameManiaAppScriptEvent@ event)
+    {
 
         if (!ShouldCapture) return;
         string[] data = {};
@@ -159,7 +163,8 @@ namespace EventInspector {
     }
 
     // todo: doesn't seem to capture anything... maybe wrong point in maniascript execution flow
-    void CaptureMAPGScriptEvent(CGameManiaAppPlaygroundScriptEvent@ event) {
+    void CaptureMAPGScriptEvent(CGameManiaAppPlaygroundScriptEvent@ event)
+    {
         if (!ShouldCapture) return;
         string[] data;
         switch (event.PlaygroundType) {
@@ -242,7 +247,8 @@ namespace EventInspector {
     }
 
     // todo: doesn't seem to capture much... maybe wrong point in maniascript execution flow
-    void CaptureInputScriptEvent(CInputScriptEvent@ event) {
+    void CaptureInputScriptEvent(CInputScriptEvent@ event)
+    {
         if (!ShouldCapture) return;
         string[] data = {"EButton::" + tostring(event.Button),
             tostring(event.KeyCode), event.KeyName, event.IsAutoRepeat ? 't' : 'f'};

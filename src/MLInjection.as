@@ -9,14 +9,16 @@ ML INJECTIONS
 
 */
 
-class InjectionSpec {
+class InjectionSpec
+{
     private string _PageUID;
     private string _ManialinkPage;
     private string _ExecPluginID;
     private bool _replace = false;
     private CGameUILayer@ layer;
 
-    InjectionSpec(const string &in PageUID, const string &in ManialinkPage, const string &in ExecPluginID, bool replace = false) {
+    InjectionSpec(const string &in PageUID, const string &in ManialinkPage, const string &in ExecPluginID, bool replace = false)
+    {
         this._PageUID = PageUID;
         this._ManialinkPage = '\n<manialink name="' + GenAttachId(PageUID) + '" version="3">\n' + ManialinkPage + '\n</manialink>';
         this._ExecPluginID = ExecPluginID;
@@ -24,31 +26,38 @@ class InjectionSpec {
         @this.layer = null;
     }
 
-    const string get_PageUID() const {
+    const string get_PageUID() const
+    {
         return _PageUID;
     }
-    const string get_ManialinkPage() const {
+    const string get_ManialinkPage() const
+    {
         return _ManialinkPage;
     }
-    const string get_ExecPluginID() const {
+    const string get_ExecPluginID() const
+    {
         return _ExecPluginID;
     }
-    const bool get_replace() const {
+    const bool get_replace() const
+    {
         return _replace;
     }
 
-    CGameUILayer@ AwaitLayer() {
+    CGameUILayer@ AwaitLayer()
+    {
         while (this.layer is null) {
             yield();
         }
         return layer;
     }
 
-    void set_Layer(CGameUILayer@ _layer) {
+    void set_Layer(CGameUILayer@ _layer)
+    {
         @layer = _layer;
     }
 
-    CGameUILayer@ get_Layer() {
+    CGameUILayer@ get_Layer()
+    {
         return layer;
     }
 }
@@ -58,7 +67,8 @@ array<InjectionSpec@> CMAP_CurrentInjections;
 array<InjectionSpec@> Menu_InjectQueue;
 array<InjectionSpec@> Menu_CurrentInjections;
 
-void RunPendingInjections() {
+void RunPendingInjections()
+{
     if (cmap is null || cmap.UILayers.Length < 10) return;
     for (uint i = 0; i < CMAP_InjectQueue.Length; i++) {
         auto spec = CMAP_InjectQueue[i];
@@ -68,7 +78,8 @@ void RunPendingInjections() {
     CMAP_InjectQueue.RemoveRange(0, CMAP_InjectQueue.Length);
 }
 
-void RunPendingMenuInjections() {
+void RunPendingMenuInjections()
+{
     if (mcma is null || mcma.UILayers.Length < 20) return;
     for (uint i = 0; i < Menu_InjectQueue.Length; i++) {
         auto spec = Menu_InjectQueue[i];
@@ -78,7 +89,8 @@ void RunPendingMenuInjections() {
     Menu_InjectQueue.RemoveRange(0, Menu_InjectQueue.Length);
 }
 
-void RerunInjectionsOnSetupCoro() {
+void RerunInjectionsOnSetupCoro()
+{
     while (!uiPopulated) yield();
     // print("Injecting nb: " + CMAP_CurrentInjections.Length);
     for (uint i = 0; i < CMAP_CurrentInjections.Length; i++) {
@@ -86,18 +98,21 @@ void RerunInjectionsOnSetupCoro() {
     }
 }
 
-void RunMenuInjectionOnSetup() {
+void RunMenuInjectionOnSetup()
+{
     while (mcma is null || mcma.UILayers.Length < 20) yield();
     for (uint i = 0; i < Menu_CurrentInjections.Length; i++) {
         InjectIfNotPresent(mcma, Menu_CurrentInjections[i]);
     }
 }
 
-const string GenAttachId(const string &in PageUID) {
+const string GenAttachId(const string &in PageUID)
+{
     return MLHook::GlobalPrefix + PageUID;
 }
 
-void InjectIfNotPresent(CGameManiaApp@ mApp, InjectionSpec@ spec) {
+void InjectIfNotPresent(CGameManiaApp@ mApp, InjectionSpec@ spec)
+{
     const string _attachId = GenAttachId(spec.PageUID);
     bool alreadyExists = false;
     auto layers = mApp.UILayers;
@@ -126,7 +141,8 @@ void InjectIfNotPresent(CGameManiaApp@ mApp, InjectionSpec@ spec) {
 
 const string RemnantAttachId = "RemnantOfHook_RemoveMe";
 
-void CleanUpLayer(CGameUILayer@ layer) {
+void CleanUpLayer(CGameUILayer@ layer)
+{
     if (layer is null) return;
     // ~~testing: this might crash things; better to leave the ML there and just not reload
     // doesn't seem to be the source of the crash -- occurs on 2nd reload of mlhook while in a server
@@ -136,7 +152,8 @@ void CleanUpLayer(CGameUILayer@ layer) {
 
 }
 
-void CleanUpRemnants() {
+void CleanUpRemnants()
+{
     warn("CleanUpRemnants currently crashes the game, sometimes at least.");
     // can trigger it manually from NodExplorer but calling it here crashes the game :(
     return; // until a method is found
@@ -152,7 +169,8 @@ void CleanUpRemnants() {
     */
 }
 
-void RemoveAllInjections() {
+void RemoveAllInjections()
+{
     // clear our cached injections
     CMAP_InjectQueue.RemoveRange(0, CMAP_InjectQueue.Length);
     CMAP_CurrentInjections.RemoveRange(0, CMAP_CurrentInjections.Length);
@@ -168,7 +186,8 @@ void RemoveAllInjections() {
     // CleanUpRemnants();
 }
 
-void RemoveInjected(CGameManiaApp@ mApp, InjectionSpec@[]@ currentInjections, const string &in PageUID) {
+void RemoveInjected(CGameManiaApp@ mApp, InjectionSpec@[]@ currentInjections, const string &in PageUID)
+{
     // dev_trace("Removing injection: " + PageUID);
     // don't reinject it
     for (uint i = 0; i < currentInjections.Length; i++) {
@@ -191,7 +210,8 @@ void RemoveInjected(CGameManiaApp@ mApp, InjectionSpec@[]@ currentInjections, co
     // startnew(CleanUpRemnants);
 }
 
-void RemovedExecutingPluginsManialinkFromPlayground() {
+void RemovedExecutingPluginsManialinkFromPlayground()
+{
     auto plugin = Meta::ExecutingPlugin();
     string[] toRem = {};
     for (uint i = 0; i < CMAP_CurrentInjections.Length; i++) {
@@ -212,7 +232,8 @@ void RemovedExecutingPluginsManialinkFromPlayground() {
     }
 }
 
-void RemovedExecutingPluginsManialinkFromMenu() {
+void RemovedExecutingPluginsManialinkFromMenu()
+{
     auto plugin = Meta::ExecutingPlugin();
     string[] toRem = {};
     for (uint i = 0; i < Menu_CurrentInjections.Length; i++) {
@@ -246,7 +267,8 @@ MESSAGES FROM AS TO ML
 */
 
 
-class OutboundMessage {
+class OutboundMessage
+{
     private string _PageUID;
     private string[]@ _msgs;
     private string _queueName;
@@ -262,19 +284,23 @@ class OutboundMessage {
             _msgs[i] = Json::Write(_msgs[i]);
         }
     }
-    const string get_PageUID() {
+    const string get_PageUID()
+    {
         return this._PageUID;
     }
-    const string[] get_msgs() {
+    const string[] get_msgs()
+    {
         return this._msgs;
     }
-    const string get_queueName() {
+    const string get_queueName()
+    {
         return this._queueName;
     }
     const string QueueTypeAndName { get { return (_isNetwrite ? "netwrite Text[][] " : "Text[][] ") + _queueName; }}
     bool IsNetwrite { get { return _isNetwrite; }}
 
-    void MarkSent() {
+    void MarkSent()
+    {
         sent = true;
     }
 }
@@ -282,11 +308,13 @@ class OutboundMessage {
 OutboundMessage@[] outboundMLMessages = {};
 OutboundMessage@[] outboundMenuMLMessages = {};
 
-const string GenQueueName(const string &in PageUID, bool isNetwrite = false) {
+const string GenQueueName(const string &in PageUID, bool isNetwrite = false)
+{
     return (isNetwrite ? MLHook::NetQueuePrefix : MLHook::QueuePrefix) + PageUID;
 }
 
-const string GenManialinkPageForOutbound(OutboundMessage@[]@ outboundMsgs, const string &in declareQFor, const string &in declareNWQFor = "UI") {
+const string GenManialinkPageForOutbound(OutboundMessage@[]@ outboundMsgs, const string &in declareQFor, const string &in declareNWQFor = "UI")
+{
     if (outboundMsgs.Length == 0) return "";
     dictionary msgsFor = dictionary();
     string _outboundMsgs = "";
@@ -324,21 +352,24 @@ SendCustomEvent("MLHook_Debug_RanMsgSend", [""^_Nonce]);
 
 const string MLHook_DataInjectionAttachId = "MLHook_DataInjection";
 
-void RunQueuedMLDataInjections() {
+void RunQueuedMLDataInjections()
+{
     if (cmap is null || outboundMLMessages.Length == 0) return;
     EnsureHooksEstablished();
     RunPendingInjections();
     auto layer = UpdateLayerWAttachIdOrMake(cmap, MLHook_DataInjectionAttachId, GenManialinkPageForOutbound(outboundMLMessages, "ClientUI"), false);
 }
 
-void RunQueuedMenuMLDataInjections() {
+void RunQueuedMenuMLDataInjections()
+{
     if (mcma is null || outboundMenuMLMessages.Length == 0) return;
     EnsureMenuHooksEstablished();
     RunPendingMenuInjections();
     auto layer = UpdateLayerWAttachIdOrMake(mcma, MLHook_DataInjectionAttachId, GenManialinkPageForOutbound(outboundMenuMLMessages, "LocalUser"), false);
 }
 
-CGameUILayer@ UpdateLayerWAttachIdOrMake(CGameManiaApp@ mApp, const string &in AttachId, wstring &in ManialinkPage, bool canBeRunning = true) {
+CGameUILayer@ UpdateLayerWAttachIdOrMake(CGameManiaApp@ mApp, const string &in AttachId, wstring &in ManialinkPage, bool canBeRunning = true)
+{
     if (mApp is null || mApp.UILayers.Length == 0) return null;
     CGameUILayer@ layer;
     bool foundLayer = false;

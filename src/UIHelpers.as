@@ -1,6 +1,7 @@
 /* tooltips */
 
-void AddSimpleTooltip(const string &in msg) {
+void AddSimpleTooltip(const string &in msg)
+{
     if (UI::IsItemHovered()) {
         UI::BeginTooltip();
         UI::Text(msg);
@@ -10,6 +11,7 @@ void AddSimpleTooltip(const string &in msg) {
 
 // /* padding */
 
-void VPad() {
+void VPad()
+{
     UI::Dummy(vec2(0, 2));
 }
