@@ -390,8 +390,9 @@ bool _SendCustomEventSH(CMwStack &in stack, CMwNod@ nod) {
         bool is_mlhook_event = s_type.StartsWith(MLHook::GlobalPrefix);
 
         /* putting the hook router call here will route all events */
-        if (EventInspector::IsCapturing)
+        if (EventInspector::IsCapturing) {
             EventInspector::CaptureEvent(type, stack.CurrentBufferWString(), EventSource::SH_SendCE, (noIntercept ? "AS" : ""));
+        }
 
         // custom events are from maniascript, so we always want to intercept them and let everything else through.
         // if noIntercept is set, then we don't want to bother checking it b/c it came via MLHook anyway.
@@ -406,11 +407,11 @@ bool _SendCustomEventSH(CMwStack &in stack, CMwNod@ nod) {
         if (!is_mlhook_event)
             return true; // game events -> true, mlhook events -> false
 
-        if (s_type == MLHook::PlaygroundHookEventName && targetSH !is null && targetSH.Page !is null)
+        if (s_type == MLHook::PlaygroundHookEventName && targetSH !is null && targetSH.Page !is null) {
             SendEvents_RunOnlyWhenSafe();
-        else if (s_type == MLHook::MenuHookEventName && targetMenuSH !is null && targetMenuSH.Page !is null)
+        } else if (s_type == MLHook::MenuHookEventName && targetMenuSH !is null && targetMenuSH.Page !is null) {
             SendMenuEvents_RunOnlyWhenSafe();
-        if (s_type.StartsWith(MLHook::LogMePrefix)) {
+        } if (s_type.StartsWith(MLHook::LogMePrefix)) {
             print("[" + s_type.SubStr(MLHook::LogMePrefix.Length) + " via MLHook] " + FastBufferWStringToString(data));
         }
 

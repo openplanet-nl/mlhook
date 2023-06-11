@@ -62,10 +62,6 @@ void RenderMenu()
 #endif
 }
 
-// void NotifyRefresh(const string &in msg) {
-//     UI::ShowNotification("Refresh Media", msg, vec4(.2, .6, .3, .3), 3000);
-// }
-
 void NotifyError(const string &in msg)
 {
     warn(msg);

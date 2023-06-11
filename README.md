@@ -17,8 +17,6 @@ As a dependency, MLHook lets plugins interact with game elements that would not 
 
 ### For Devs:
 
-#### Status: Public Beta and RFC, mostly stable API
-
 Current Features:
 
 * Send events to Nadeo ML via `CGameManialinkScriptHandler.SendCustomEvent` (e.g., to display a ghost) or the playground's `SendCustomEvent` function.
