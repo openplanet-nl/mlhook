@@ -1,5 +1,5 @@
 void dev_trace(const string &in msg) {
 #if DEV
-    trace(msg);
+	trace(msg);
 #endif
 }
