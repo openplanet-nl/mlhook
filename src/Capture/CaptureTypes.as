@@ -136,7 +136,6 @@ namespace EventInspector
 	// 2022-09-29 seems to be working w/
 	void CaptureMAScriptEvent(CGameManiaAppScriptEvent@ event)
 	{
-
 		if (!ShouldCapture) return;
 		string[] data = {};
 		CGameUILayer@ layer = null;
@@ -158,6 +157,34 @@ namespace EventInspector
 			, ""
 			, layer
 			// , (event.CustomEventLayer is null) ? null : event.CustomEventLayer // this crashes the game even tho we check for null :(
+			);
+		_RecordCaptured(ce);
+	}
+
+	void CapturePMScriptEvent(CGameEditorPluginMapScriptEvent@ event)
+	{
+
+		if (!ShouldCapture) return;
+		string[] data = {};
+		CGameUILayer@ layer = null;
+		// accessing irrelevant parts of an even crashes the game
+		if (event.Type == CGameEditorPluginMapScriptEvent::EType::KeyPress) {
+			data = {tostring(event.KeyCode), event.KeyName, event.IsActionAutoRepeat ? 't' : 'f'};
+		} else if (event.Type == CGameEditorPluginMapScriptEvent::EType::MenuNavigation) {
+			data = {"EMenuNavAction::" + tostring(event.MenuNavAction), event.IsActionAutoRepeat ? 't' : 'f'};
+		} else if (event.Type == CGameEditorPluginMapScriptEvent::EType::LayerCustomEvent) {
+			data = {event.CustomEventType, FastBufferWStringToString(event.CustomEventData)};
+			@layer = event.CustomEventLayer;
+		} else if (event.Type == CGameEditorPluginMapScriptEvent::EType::EditAnchor) {
+			data = {event.EditedAnchorDataId.GetName()};
+		} else {
+			data = {"?? (see CaptureTypes.as)"};
+		}
+		auto ce = CustomEvent("CGameEditorPluginMapScriptEvent::EType::" + tostring(event.Type)
+			, ArrStringToFastBufferWString(data)
+			, EventSource::PMT_SE
+			, ""
+			, layer
 			);
 		_RecordCaptured(ce);
 	}

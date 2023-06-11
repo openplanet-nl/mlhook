@@ -66,6 +66,8 @@ array<InjectionSpec@> CMAP_InjectQueue;
 array<InjectionSpec@> CMAP_CurrentInjections;
 array<InjectionSpec@> Menu_InjectQueue;
 array<InjectionSpec@> Menu_CurrentInjections;
+array<InjectionSpec@> Editor_InjectQueue;
+array<InjectionSpec@> Editor_CurrentInjections;
 
 void RunPendingInjections()
 {
@@ -89,6 +91,17 @@ void RunPendingMenuInjections()
 	Menu_InjectQueue.RemoveRange(0, Menu_InjectQueue.Length);
 }
 
+void RunPendingEditorInjections()
+{
+	if (PluginMapType is null) return;
+	for (uint i = 0; i < Editor_InjectQueue.Length; i++) {
+		auto spec = Editor_InjectQueue[i];
+		InjectIfNotPresent(PluginMapType, spec);
+		Editor_CurrentInjections.InsertLast(spec);
+	}
+	Editor_InjectQueue.RemoveRange(0, Editor_InjectQueue.Length);
+}
+
 void RerunInjectionsOnSetupCoro()
 {
 	while (!uiPopulated) yield();
@@ -103,6 +116,14 @@ void RunMenuInjectionOnSetup()
 	while (mcma is null || mcma.UILayers.Length < 20) yield();
 	for (uint i = 0; i < Menu_CurrentInjections.Length; i++) {
 		InjectIfNotPresent(mcma, Menu_CurrentInjections[i]);
+	}
+}
+
+void RunEditorInjectionOnSetup()
+{
+	while (PluginMapType is null) yield();
+	for (uint i = 0; i < Editor_CurrentInjections.Length; i++) {
+		InjectIfNotPresent(PluginMapType, Editor_CurrentInjections[i]);
 	}
 }
 
@@ -254,6 +275,28 @@ void RemovedExecutingPluginsManialinkFromMenu()
 	}
 }
 
+void RemovedExecutingPluginsManialinkFromEditor()
+{
+	auto plugin = Meta::ExecutingPlugin();
+	string[] toRem = {};
+	for (uint i = 0; i < Editor_CurrentInjections.Length; i++) {
+		auto spec = Editor_CurrentInjections[i];
+		if (spec.ExecPluginID == plugin.ID) {
+			toRem.InsertLast(spec.PageUID);
+		}
+	}
+	for (uint i = 0; i < Editor_InjectQueue.Length; i++) {
+		auto spec = Editor_InjectQueue[i];
+		if (spec.ExecPluginID == plugin.ID) {
+			Editor_InjectQueue.RemoveAt(i);
+			i--;
+		}
+	}
+	for (uint i = 0; i < toRem.Length; i++) {
+		RemoveInjected(PluginMapType, Editor_CurrentInjections, toRem[i]);
+	}
+}
+
 
 /*
 
@@ -307,6 +350,7 @@ class OutboundMessage
 
 OutboundMessage@[] outboundMLMessages = {};
 OutboundMessage@[] outboundMenuMLMessages = {};
+OutboundMessage@[] outboundEditorMLMessages = {};
 
 const string GenQueueName(const string &in PageUID, bool isNetwrite = false)
 {
@@ -366,6 +410,14 @@ void RunQueuedMenuMLDataInjections()
 	EnsureMenuHooksEstablished();
 	RunPendingMenuInjections();
 	auto layer = UpdateLayerWAttachIdOrMake(mcma, MLHook_DataInjectionAttachId, GenManialinkPageForOutbound(outboundMenuMLMessages, "LocalUser"), false);
+}
+
+void RunQueuedEditorMLDataInjections()
+{
+	if (PluginMapType is null || outboundEditorMLMessages.Length == 0) return;
+	EnsureEditorHooksEstablished();
+	RunPendingEditorInjections();
+	auto layer = UpdateLayerWAttachIdOrMake(PluginMapType, MLHook_DataInjectionAttachId, GenManialinkPageForOutbound(outboundEditorMLMessages, "LocalUser"), false);
 }
 
 CGameUILayer@ UpdateLayerWAttachIdOrMake(CGameManiaApp@ mApp, const string &in AttachId, wstring &in ManialinkPage, bool canBeRunning = true)

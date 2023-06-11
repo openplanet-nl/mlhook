@@ -9,7 +9,7 @@ void Main()
 	startnew(EventInspector::MainCoro); // note: does nothing as of 2022-09-27
 #endif
 #if DEV
-	MLHook::RegisterMLHook(MLHook::_ML_Hook_Feed);
+	Test_RegisterEditorCallbacks();
 #endif
 }
 
@@ -108,3 +108,23 @@ CGameManiaAppTitle@ get_mcma()
 {
 	return MenuMgr.MenuCustom_CurrentManiaApp;
 }
+
+CGameCtnEditorFree@ get_editor() 
+{
+	return cast<CGameCtnEditorFree>(app.Editor);
+}
+
+CSmEditorPluginMapType@ get_PluginMapType() 
+{
+	if (editor is null) return null;
+	return cast<CSmEditorPluginMapType>(editor.PluginMapType);
+}
+
+// true when app.Editor is null (so any editor will mean this returns false)
+bool get_AppEditorIsNull() 
+{
+	return app.Editor is null;
+}
+
+
+

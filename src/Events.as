@@ -8,8 +8,9 @@ enum EventSource
 	, MA_SE // todo: CGameManiaAppScriptEvent
 	, MAPG_SE // todo: verify CGameManiaAppPlaygroundScriptEvent works
 	, InputSE // CInputScriptEvent
+	, PMT_SE // CGameEditorPluginMapScriptEvent
 	}
-
+	
 EventSource[] AllEventSources =
 	{ EventSource::Any
 	, EventSource::LayerCE
@@ -20,18 +21,20 @@ EventSource[] AllEventSources =
 	, EventSource::MA_SE
 	, EventSource::MAPG_SE
 	, EventSource::InputSE
+	, EventSource::PMT_SE
 	};
 
 string[] EventSourceLegend =
 	{ "Any or Unknown"
-	, "via LayerCustomEvent() (working)"
-	, "via Playground.SendCustomEvent() (working)"
-	, "via ScriptHandler.SendCustomEvent() (working)"
-	, "via CGameEditorMainPlugin.SendPluginEvent() (working? idk)"
+	, "via LayerCustomEvent()"
+	, "via Playground.SendCustomEvent()"
+	, "via ScriptHandler.SendCustomEvent()"
+	, "via CGameEditorMainPlugin.SendPluginEvent()"
 	, "CGameManialinkScriptEvent via ScriptHandler.PendingEvents (note: possibly does not catch all events)"
 	, "CGameManiaAppScriptEvent via ManiaApp.PendingEvents (not working?)"
-	, "CGameManiaAppPlaygroundScriptEvent via ManiaAppPlayground.PendingEvents (not working)"
-	, "CInputScriptEvent via Input.PendingEvents (not working)"
+	, "CGameManiaAppPlaygroundScriptEvent via ManiaAppPlayground.PendingEvents"
+	, "CInputScriptEvent via Input.PendingEvents"
+	, "CGameEditorPluginMapScriptEvent via PluginMapType.PendingEvents"
 	};
 
 const string EventSourceToString(EventSource es, bool colorize = true) {
@@ -46,6 +49,7 @@ const string EventSourceToString(EventSource es, bool colorize = true) {
 		case EventSource::MA_SE: return "\\$f22" + tostring(es) + "\\$z";
 		case EventSource::MAPG_SE: return "\\$f19" + tostring(es) + "\\$z";
 		case EventSource::InputSE: return "\\$19f" + tostring(es) + "\\$z";
+		case EventSource::PMT_SE: return "\\$1f9" + tostring(es) + "\\$z";
 	}
 	return tostring(es);
 }

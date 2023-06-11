@@ -10,7 +10,8 @@ a note from menu scripts about custom events:
 
 */
 
-void HookManialinkCode() {
+void HookManialinkCode() 
+{
 	Dev::InterceptProc("CGameManiaApp", "LayerCustomEvent", _LayerCustomEvent);
 	Dev::InterceptProc("CGameManiaAppPlayground", "SendCustomEvent", _SendCustomEvent);
 	Dev::InterceptProc("CGameManialinkScriptHandler", "SendCustomEvent", _SendCustomEventSH);
@@ -33,9 +34,11 @@ void HookManialinkCode() {
 #endif
 	startnew(WatchForSetup);
 	startnew(SetUpMenu);
+	startnew(WatchForEditor);
 }
 
-void SetUpMenu() {
+void SetUpMenu() 
+{
 	while (mcma is null) yield();
 	while (mcma.UILayers.Length < 20) yield();
 	sleep(50);
@@ -52,7 +55,8 @@ void SetUpMenu() {
 
 // Wait for cmap to be non-null and set up the hook.
 // Repeat so that it is done each time
-void WatchForSetup() {
+void WatchForSetup() 
+{
 	while (true) {
 		// if (PanicMode::IsActive) WarnOnPanic;
 		yield();
@@ -86,22 +90,53 @@ void WatchForSetup() {
 	}
 }
 
+
+void WatchForEditor()
+{
+	while (true) {
+		yield();
+		while (AppEditorIsNull) yield();
+		while (editor is null) yield();
+		while (PluginMapType is null) yield();
+		while (!manialinkEditorHooksSetUp) {
+			TryManialinkEditorSetup();
+			yield();
+		}
+		if (targetEditorSH is null) continue;
+		RunEditorInjectionOnSetup();
+		// wait for editor to exit
+		while (!AppEditorIsNull) yield();
+		@targetEditorSH = null;
+	}
+}
+
+
 // A one-time version of the above
-void EnsureHooksEstablished() {
+void EnsureHooksEstablished() 
+{
 	while (cmap is null) yield();
 	while (!uiPopulated) yield();
 	while (!manialinkHooksSetUp) yield();
 	while (targetSH is null) throw('targetSH == null; should never happen?');
 }
 
-void EnsureMenuHooksEstablished() {
+void EnsureMenuHooksEstablished() 
+{
 	while (mcma is null) yield();
 	while (mcma.UILayers.Length < 20) yield();
 	while (!manialinkMenuHooksSetUp) yield();
 	while (targetMenuSH is null) throw('targetMenuSH == null; should never happen?');
 }
 
-bool get_uiPopulated() {
+void EnsureEditorHooksEstablished() 
+{
+	while (editor is null) yield();
+	while (!manialinkEditorHooksSetUp) yield();
+	while (targetEditorSH is null) throw('targetEditorSH == null; should never happen?');
+}
+
+bool get_uiPopulated() 
+{
 	if (cmap is null) return false;
 	if (GetApp().CurrentPlayground is null) return false;
 	// 2 by default, it seems; but if there are not more than 2 here, there will be some elsewhere (probably)
@@ -116,9 +151,8 @@ const string ML_Setup_AttachId = MLHook::GlobalPrefix + "AngelScript_CallBack";
 bool get_manialinkHooksSetUp() {
 	if (cmap is null) return false;
 	bool foundCBLayer = false;
-	auto layers = cmap.UILayers;
-	for (uint i = 0; i < layers.Length; i++) {
-		auto layer = layers[i];
+	for (uint i = 0; i < cmap.UILayers.Length; i++) {
+		auto layer = cmap.UILayers[i];
 		if (layer.AttachId == ML_Setup_AttachId) {
 			if (targetSH is null) {
 				@targetSH = cast<CSmArenaInterfaceManialinkScripHandler>(layer.LocalPage.ScriptHandler);
@@ -133,12 +167,27 @@ bool get_manialinkHooksSetUp() {
 bool get_manialinkMenuHooksSetUp() {
 	if (mcma is null) return false;
 	bool foundCBLayer = false;
-	auto layers = mcma.UILayers;
-	for (uint i = 0; i < layers.Length; i++) {
-		auto layer = layers[i];
+	for (uint i = 0; i < mcma.UILayers.Length; i++) {
+		auto layer = mcma.UILayers[i];
 		if (layer.AttachId == ML_Setup_AttachId) {
 			if (targetMenuSH is null) {
 				@targetMenuSH = cast<CGameManiaAppTitleLayerScriptHandler>(layer.LocalPage.ScriptHandler);
+			}
+			foundCBLayer = true;
+			break;
+		}
+	}
+	return foundCBLayer;
+}
+
+bool get_manialinkEditorHooksSetUp() {
+	if (PluginMapType is null) return false;
+	bool foundCBLayer = false;
+	for (uint i = 0; i < PluginMapType.UILayers.Length; i++) {
+		auto layer = PluginMapType.UILayers[i];
+		if (layer.AttachId == ML_Setup_AttachId) {
+			if (targetEditorSH is null) {
+				@targetEditorSH = cast<CGameEditorPluginMapLayerScriptHandler>(layer.LocalPage.ScriptHandler);
 			}
 			foundCBLayer = true;
 			break;
@@ -185,15 +234,37 @@ main() {
 	@targetMenuSH = cast<CGameManiaAppTitleLayerScriptHandler>(layer.LocalPage.ScriptHandler);
 }
 
+void TryManialinkEditorSetup() {
+	if (PluginMapType is null || manialinkEditorHooksSetUp) return;
+	auto layer = PluginMapType.UILayerCreate();
+	layer.AttachId = ML_Setup_AttachId;
+	layer.ManialinkPage = """
+<manialink name="MLHook_AngelScript_CallBack" version="3">
+<script><!--
+main() {
+	while(True) {
+		SendCustomEvent(""" + '"' + MLHook::EditorHookEventName + '"' + """, []);
+		yield;
+	}
+}
+--></script>
+</manialink>
+""";
+	@targetEditorSH = cast<CGameEditorPluginMapLayerScriptHandler>(layer.LocalPage.ScriptHandler);
+}
+
 CSmArenaInterfaceManialinkScripHandler@ targetSH;
 CGameManiaAppTitleLayerScriptHandler@ targetMenuSH;
+CGameEditorPluginMapLayerScriptHandler@ targetEditorSH;
 
 CustomEvent@[] SH_SCE_EventQueue = {};
 CustomEvent@[] PG_SCE_EventQueue = {};
 CustomEvent@[] Menu_SH_SCE_EventQueue = {};
+CustomEvent@[] Editor_SH_SCE_EventQueue = {};
 
 uint lastGameTime = 0;
 uint lastMenuTime = 0;
+uint lastEditorTime = 0;
 
 funcdef void SendEventF(CustomEvent@ event);
 
@@ -234,6 +305,23 @@ void SendMenuEvents_RunOnlyWhenSafe() {
 	}
 }
 
+void SendEditorEvents_RunOnlyWhenSafe() {
+	if (PanicMode::IsActive) return;
+	try {
+		if (PluginMapType is null || targetEditorSH is null || targetEditorSH.Page is null) return;
+		uint gt = targetEditorSH.Now;
+		if (gt != lastEditorTime) {
+			lastEditorTime = gt;
+			// print("SendEvents_RunOnlyWhenSafe - " + gt);
+			_ProcessAllEventsFor(Editor_SH_SCE_EventQueue, function(CustomEvent@ event) {
+				targetEditorSH.SendCustomEvent(event.type, event.data);
+			});
+		}
+	} catch {
+		PanicMode::Activate("Exception in SendEditorEvents_RunOnlyWhenSafe: " + getExceptionInfo());
+	}
+}
+
 void _ProcessAllEventsFor(CustomEvent@[]@ eventQueue, SendEventF@ funcSendEvent) {
 	noIntercept = true;
 	for (uint i = 0; i < eventQueue.Length; i++) {
@@ -249,9 +337,12 @@ void _ProcessAllEventsFor(CustomEvent@[]@ eventQueue, SendEventF@ funcSendEvent)
 // uint lastPendingCheck = 0;
 uint lastShPendingLen = 0;
 LastChecker targetSHChecker;
+LastChecker targetMenuSHChecker;
+LastChecker targetEditorSHChecker;
 LastChecker cmapChecker;
 LastChecker InputMgrChecker;
 LastChecker mcmaChecker;
+LastChecker PluginMapTypeChecker;
 
 void CheckForPendingEvents() {
 	// todo (maybe): we need to avoid checking EI::IsCapturing if we (ab)use it for routing
@@ -271,6 +362,27 @@ void CheckForPendingEvents() {
 			}
 		}
 	} else { targetSHChecker.Reset(); }
+
+	if (targetMenuSH !is null && targetMenuSH.PendingEvents.Length > 0) {
+		uint peLen = targetMenuSH.PendingEvents.Length;
+		if (targetMenuSHChecker.ShouldCheckAgain(peLen, tostring(targetMenuSH.PendingEvents[peLen - 1].Type))) {
+			for (uint i = 0; i < targetMenuSH.PendingEvents.Length; i++) {
+				CGameManialinkScriptEvent@ item = targetMenuSH.PendingEvents[i];
+				EventInspector::CaptureMLScriptEvent(item);
+			}
+		}
+	} else { targetMenuSHChecker.Reset(); }
+
+	if (targetEditorSH !is null && targetEditorSH.PendingEvents.Length > 0) {
+		uint peLen = targetEditorSH.PendingEvents.Length;
+		if (targetEditorSHChecker.ShouldCheckAgain(peLen, tostring(targetEditorSH.PendingEvents[peLen - 1].Type))) {
+			for (uint i = 0; i < targetEditorSH.PendingEvents.Length; i++) {
+				CGameManialinkScriptEvent@ item = targetEditorSH.PendingEvents[i];
+				EventInspector::CaptureMLScriptEvent(item);
+			}
+		}
+	} else { targetEditorSHChecker.Reset(); }
+
 	// todo: CGameManiaAppScriptEvent excluding CGameManiaAppPlaygroundScriptEvent
 	// CGameManiaAppPlaygroundScriptEvent
 	if (cmap !is null && cmap.PendingEvents.Length > 0) {
@@ -303,6 +415,17 @@ void CheckForPendingEvents() {
 			}
 		}
 	} else { mcmaChecker.Reset(); }
+
+	if (PluginMapType !is null && PluginMapType.PendingEvents.Length > 0) {
+		uint peLen = PluginMapType.PendingEvents.Length;
+		if (PluginMapTypeChecker.ShouldCheckAgain(peLen, tostring(PluginMapType.PendingEvents[peLen - 1].Type))) {
+			for (uint i = 0; i < PluginMapType.PendingEvents.Length; i++) {
+				CGameEditorPluginMapScriptEvent@ item = PluginMapType.PendingEvents[i];
+				EventInspector::CapturePMScriptEvent(item);
+			}
+		}
+	} else { PluginMapTypeChecker.Reset(); }
+
 	// warn("CheckForPendingEvents too: " + (Time::Now - lastPendingCheck));
 }
 
@@ -407,12 +530,22 @@ bool _SendCustomEventSH(CMwStack &in stack, CMwNod@ nod) {
 		if (!is_mlhook_event)
 			return true; // game events -> true, mlhook events -> false
 
-		if (s_type == MLHook::PlaygroundHookEventName && targetSH !is null && targetSH.Page !is null) {
+		bool isPgTrigger = s_type == MLHook::PlaygroundHookEventName;
+		bool isMenuTrigger = !isPgTrigger && s_type == MLHook::MenuHookEventName;
+		bool isEditorTrigger = !isPgTrigger && !isMenuTrigger && s_type == MLHook::EditorHookEventName;
+		
+		if (isPgTrigger && targetSH !is null && targetSH.Page !is null) {
 			SendEvents_RunOnlyWhenSafe();
-		} else if (s_type == MLHook::MenuHookEventName && targetMenuSH !is null && targetMenuSH.Page !is null) {
+		} else if (isMenuTrigger && targetMenuSH !is null && targetMenuSH.Page !is null) {
 			SendMenuEvents_RunOnlyWhenSafe();
+		} else if (isEditorTrigger && targetEditorSH !is null && targetEditorSH.Page !is null) {
+			SendEditorEvents_RunOnlyWhenSafe();
 		} if (s_type.StartsWith(MLHook::LogMePrefix)) {
 			print("[" + s_type.SubStr(MLHook::LogMePrefix.Length) + " via MLHook] " + FastBufferWStringToString(data));
+		}
+
+		if (isPgTrigger || isMenuTrigger || isEditorTrigger) {
+			MLHook::_ML_Hook_Feed.OnEvent(MLHook::PendingEvent(s_type, data));
 		}
 
 		return false;
