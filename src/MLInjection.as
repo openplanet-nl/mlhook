@@ -9,6 +9,10 @@ ML INJECTIONS
 
 */
 
+/**
+ * Specify manialink code to inject.
+ * `::layer` is set externally.
+ */
 class InjectionSpec
 {
 	private string _PageUID;

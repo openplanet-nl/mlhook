@@ -28,11 +28,16 @@ void MainCoro()
 	while (true) {
 		yield();
 		yield();
+		// Currently supported mania apps:
+		//   Playground, Menu, Editor.PluginMapType (different from editor itself)
+		// data injections for supported mania apps
 		RunPendingInjections();
 		RunPendingMenuInjections();
-		//
+		RunPendingEditorInjections();
+		// data injections for supported mania apps
 		RunQueuedMLDataInjections();
 		RunQueuedMenuMLDataInjections();
+		RunQueuedEditorMLDataInjections();
 	}
 }
 
@@ -80,24 +85,35 @@ void NotifyVersionIssue(const string &in msg)
 	UI::ShowNotification("MLHook Version Issue", msg, vec4(.9, .6, .3, .5), 20000);
 }
 
-// game api stuff
+/**
+	game api stuff
 
+	NOTE!! This method (global getters) for game objects is **NOT** recommended.
+	It makes plugin review much harder.
+	Rather, you should call `GetApp()` within the function in which you're using it.
+	If you want helper functions, have the functions take a CGameManiaPlanet@ and return the Nod@ that you want to access.
+
+*/
+
+// The app
 CGameManiaPlanet@ get_app()
 {
 	return cast<CGameManiaPlanet>(GetApp());
 }
 
+// app.Network.ClientManiaAppPlayground
 CGameManiaAppPlayground@ get_cmap()
 {
 	return app.Network.ClientManiaAppPlayground;
 }
 
+// app.Network.ClientManiaAppPlayground.Input
 CInputScriptManager@ get_InputMgr()
 {
 	return cmap is null ? null : cmap.Input;
 }
 
-// don't need CTrackManiaMenus
+// app.MenuManager; no need to cast to CTrackManiaMenus
 CGameCtnMenusManiaPlanet@ get_MenuMgr()
 {
 	return app.MenuManager;
@@ -114,6 +130,7 @@ CGameCtnEditorFree@ get_editor()
 	return cast<CGameCtnEditorFree>(app.Editor);
 }
 
+// Editor.PluginMapType
 CSmEditorPluginMapType@ get_PluginMapType()
 {
 	if (editor is null) return null;
@@ -125,6 +142,3 @@ bool get_AppEditorIsNull()
 {
 	return app.Editor is null;
 }
-
-
-
