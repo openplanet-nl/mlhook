@@ -1,98 +1,111 @@
-namespace MLHook 
+namespace MLHook
 {
-	void Queue_SH_SendCustomEvent(const string &in type, string[] &in data = {}) 
+	// Queue an event to send via a Playground ScriptHandler's SendCustomEvent
+	void Queue_SH_SendCustomEvent(const string &in type, string[] &in data = {})
 	{
 		SH_SCE_EventQueue.InsertLast(CustomEvent(type, data));
 	}
-	void Queue_PG_SendCustomEvent(const string &in type, string[] &in data = {}) 
+	// Queue an event to send via the Playground's SendCustomEvent
+	void Queue_PG_SendCustomEvent(const string &in type, string[] &in data = {})
 	{
 		PG_SCE_EventQueue.InsertLast(CustomEvent(type, data));
 	}
-	void Queue_SendCustomEvent(const string &in type, string[] &in data = {}) 
+	// *Deprecated* Queue an event to send via the Playground's SendCustomEvent
+	void Queue_SendCustomEvent(const string &in type, string[] &in data = {})
 	{
 		warn('deprecated, use Queue_PG_SendCustomEvent');
 		Queue_PG_SendCustomEvent(type, data);
 	}
-	void Queue_Menu_SendCustomEvent(const string &in type, string[] &in data = {}) 
+
+	// Queue an event to send via a Menu ScriptHandler's SendCustomEvent
+	void Queue_Menu_SendCustomEvent(const string &in type, string[] &in data = {})
 	{
 		Menu_SH_SCE_EventQueue.InsertLast(CustomEvent(type, data));
 	}
-	void Queue_Editor_SendCustomEvent(const string &in type, string[] &in data = {}) 
+	// Queue an event to send via Editor.PluginMapType's SendCustomEvent
+	void Queue_Editor_SendCustomEvent(const string &in type, string[] &in data = {})
 	{
 		Editor_SH_SCE_EventQueue.InsertLast(CustomEvent(type, data));
 	}
 
-
-	void InjectManialinkToPlayground(const string &in PageUID, const string &in ManialinkPage, bool replace = false) 
+	// Inject a ML page to the playground. The page name will be MLHook_PageUID.
+	void InjectManialinkToPlayground(const string &in PageUID, const string &in ManialinkPage, bool replace = false)
 	{
 		CMAP_InjectQueue.InsertLast(InjectionSpec(PageUID, ToMLScript(ManialinkPage), Meta::ExecutingPlugin().ID, replace));
 	}
-	void InjectManialinkToMenu(const string &in PageUID, const string &in ManialinkPage, bool replace = false) 
+	// Inject a ML page to the menu. The page name will be MLHook_PageUID.
+	void InjectManialinkToMenu(const string &in PageUID, const string &in ManialinkPage, bool replace = false)
 	{
 		Menu_InjectQueue.InsertLast(InjectionSpec(PageUID, ToMLScript(ManialinkPage), Meta::ExecutingPlugin().ID, replace));
 	}
-	void InjectManialinkToEditor(const string &in PageUID, const string &in ManialinkPage, bool replace = false) 
+	// Inject a ML page to editor.PluginMapType. The page name will be MLHook_PageUID.
+	void InjectManialinkToEditor(const string &in PageUID, const string &in ManialinkPage, bool replace = false)
 	{
 		Editor_InjectQueue.InsertLast(InjectionSpec(PageUID, ToMLScript(ManialinkPage), Meta::ExecutingPlugin().ID, replace));
 	}
-	void RemoveInjectedMLFromPlayground(const string &in PageUID) 
+	// Remove an injected ML page with the given PageUID from the playground
+	void RemoveInjectedMLFromPlayground(const string &in PageUID)
 	{
 		RemoveInjected(cmap, CMAP_CurrentInjections, PageUID);
 	}
-	void RemoveInjectedMLFromMenu(const string &in PageUID) 
+	// Remove an injected ML page with the given PageUID from the menu
+	void RemoveInjectedMLFromMenu(const string &in PageUID)
 	{
 		RemoveInjected(mcma, Menu_CurrentInjections, PageUID);
 	}
-	void RemoveInjectedMLFromEditor(const string &in PageUID) 
+	// Remove an injected ML page with the given PageUID from editor.PluginMapType
+	void RemoveInjectedMLFromEditor(const string &in PageUID)
 	{
 		RemoveInjected(PluginMapType, Editor_CurrentInjections, PageUID);
 	}
 
 
-
-	void Queue_ToInjectedManialink(const string &in PageUID, const string &in msg) 
+	// deprecated in favor of Queue_MessageManialinkPlayground
+	void Queue_ToInjectedManialink(const string &in PageUID, const string &in msg)
 	{
 		warn('deprecated; use Queue_MessageManialinkPlayground');
 		Queue_MessageManialinkPlayground(PageUID, msg);
 	}
-
-	void Queue_MessageManialinkPlayground(const string &in PageUID, const string &in msg) 
+	// queue a message to a page with the given PageUID
+	void Queue_MessageManialinkPlayground(const string &in PageUID, const string &in msg)
 	{
 		outboundMLMessages.InsertLast(OutboundMessage(PageUID, {msg}));
 	}
-	void Queue_MessageManialinkPlayground(const string &in PageUID, string[] &in msgs) 
+	// queue messages to a page with the given PageUID
+	void Queue_MessageManialinkPlayground(const string &in PageUID, string[] &in msgs)
 	{
 		outboundMLMessages.InsertLast(OutboundMessage(PageUID, msgs));
 	}
-	void Queue_MessageManialinkPlaygroundServer(const string &in PageUID, const string &in msg) 
+	// queue a message to an ML page on the game server (via netwrite) with the given PageUID
+	void Queue_MessageManialinkPlaygroundServer(const string &in PageUID, const string &in msg)
 	{
 		outboundMLMessages.InsertLast(OutboundMessage(PageUID, {msg}, true));
 	}
-	void Queue_MessageManialinkPlaygroundServer(const string &in PageUID, string[] &in msgs) 
+	// queue messages to an ML page on the game server (via netwrite) with the given PageUID
+	void Queue_MessageManialinkPlaygroundServer(const string &in PageUID, string[] &in msgs)
 	{
 		outboundMLMessages.InsertLast(OutboundMessage(PageUID, msgs, true));
 	}
-	void Queue_MessageManialinkMenu(const string &in PageUID, const string &in msg) 
+	// queue a message to a page in the menu with the given PageUID
+	void Queue_MessageManialinkMenu(const string &in PageUID, const string &in msg)
 	{
 		outboundMenuMLMessages.InsertLast(OutboundMessage(PageUID, {msg}));
 	}
-	void Queue_MessageManialinkMenu(const string &in PageUID, string[] &in msgs) 
+	// queue messages to a page in the menu with the given PageUID
+	void Queue_MessageManialinkMenu(const string &in PageUID, string[] &in msgs)
 	{
 		outboundMenuMLMessages.InsertLast(OutboundMessage(PageUID, msgs));
 	}
-	void Queue_MessageManialinkEditor(const string &in PageUID, const string &in msg) 
+	// queue a message to a page in editor.PluginMapType with the given PageUID
+	void Queue_MessageManialinkEditor(const string &in PageUID, const string &in msg)
 	{
 		outboundEditorMLMessages.InsertLast(OutboundMessage(PageUID, {msg}));
 	}
-	void Queue_MessageManialinkEditor(const string &in PageUID, string[] &in msgs) 
+	// queue messages to a page in editor.PluginMapType with the given PageUID
+	void Queue_MessageManialinkEditor(const string &in PageUID, string[] &in msgs)
 	{
 		outboundEditorMLMessages.InsertLast(OutboundMessage(PageUID, msgs));
 	}
-
-	// void Queue_MessageManialinkMenu(const string &in PageUID, const string &in msg) {
-	//     NotifyTodo("Queue_MessageManialinkMenu not yet implemented - msg @XertroV");
-	//     // outboundMLMessages.InsertLast(OutboundMessage(PageUID, msg));
-	// }
 
 	const string get_GlobalPrefix() {return "MLHook_";}
 	const string get_EventPrefix() {return "MLHook_Event_";}
@@ -113,23 +126,31 @@ namespace MLHook
 
 	const string get_EditorHookEventName() { return _EditorHookEventName; }
 
-	void RegisterMLHook(HookMLEventsByType@ hookObj, const string &in type = "", bool isNadeoEvent = false) 
+	// Register a hook object to recieve events of the specified type (or the default for that page). The MLHook_Event_ prefix is automatically applied, unless isNadeoEvent is false
+	void RegisterMLHook(HookMLEventsByType@ hookObj, const string &in type = "", bool isNadeoEvent = false)
 	{
 		HookRouter::RegisterMLHook(hookObj, type, isNadeoEvent);
 	}
 
-	void UnregisterMLHookFromAll(HookMLEventsByType@ hookObj) 
+	// Unregister a hook object
+	void UnregisterMLHookFromAll(HookMLEventsByType@ hookObj)
 	{
 		HookRouter::UnregisterMLHook(hookObj);
 	}
 
-	void UnregisterMLHooksAndRemoveInjectedML() 
+	/**
+	 	Unregister all of your plugins hooks and uninject ML pages (call in `OnDisabled` and `OnDestroyed`)
+
+		This is the preferred way to unregister injections and hooks -- auto-detects the calling plugin.
+	 */
+	void UnregisterMLHooksAndRemoveInjectedML()
 	{
 		RemoveAllInjectedML();
 		HookRouter::UnregisterExecutingPluginsMLHooks();
 	}
 
-	void RemoveAllInjectedML() 
+	// uninject all your plugins ML pages
+	void RemoveAllInjectedML()
 	{
 		RemovedExecutingPluginsManialinkFromPlayground();
 		RemovedExecutingPluginsManialinkFromMenu();
@@ -137,17 +158,19 @@ namespace MLHook
 	}
 
 
-	const string get_Version() 
+	const string get_Version()
 	{
 		return Meta::GetPluginFromID("MLHook").Version;
 	}
 
 	string[] versionsAlsoCompatible = {"0.3.0", "0.3.1", "0.3.2", "0.3.3", "0.3.4"
 		, "0.4.0", "0.4.1", "0.4.2", "0.4.3", "0.4.4", "0.4.5", "0.4.6"
+		, "0.5.0"
 		, Meta::ExecutingPlugin().Version // add the current version in case of forgetfullness
 	};
 
-	void RequireVersionApi(const string &in versionReq) 
+	// Deprecated. The intent was to ensure MLHook's api was compatible, but breaking changes are not expected any longer
+	void RequireVersionApi(const string &in versionReq)
 	{
 		if (Version != versionReq && versionsAlsoCompatible.Find(versionReq) < 0) {
 			auto caller = Meta::ExecutingPlugin();
@@ -156,20 +179,25 @@ namespace MLHook
 		}
 	}
 
-	string ToMLScript(const string &in src) 
+	// Convert Maniascript code to an ML page
+	string ToMLScript(const string &in src)
 	{
+		if (src.Trim().StartsWith("<")) {
+			// we already have XML, so assume the user has wrapped script code with script tags
+			return src;
+		}
 		return "\n<script><!--\n\n" + src + "\n\n--></script>\n";
 	}
 
 	class PlaygroundMLExecutionPointFeed : MLFeed
 	{
-		PlaygroundMLExecutionPointFeed() 
+		PlaygroundMLExecutionPointFeed()
 		{
 			// does not match an event, will be called manually during interception
 			super("");
 		}
 
-		ref@ Preprocess(MwFastBuffer<wstring> &in data) override 
+		ref@ Preprocess(MwFastBuffer<wstring> &in data) override
 		{
 			return null;
 		}
@@ -177,7 +205,14 @@ namespace MLHook
 
 	PlaygroundMLExecutionPointFeed _ML_Hook_Feed;
 
-	// note: callback arg is always null
+
+	/**
+		*Warning:* Experimental.
+
+		Register a function to be called during ML execution each frame. Note that the argument to the callback will always be null.
+
+		Note that no way to remove these functions exists yet.
+	*/
 	void RegisterPlaygroundMLExecutionPointCallback(MLFeedFunction@ func)
 	{
 		_ML_Hook_Feed.RegisterCallback(func);
