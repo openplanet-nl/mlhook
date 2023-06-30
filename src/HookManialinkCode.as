@@ -69,9 +69,15 @@ void WatchForSetup()
 		while (!uiPopulated) {
 			yield();
 		}
+		dev_trace("ui populated");
 		for (uint i = 0; i < 10; i++) yield();
 		// wait for script hooks to be set up
+		trace("UI populated: about to do ML page injection");
+		dev_trace("checking ml hooks set up");
+		yield();
 		while (!manialinkHooksSetUp) {
+			dev_trace("attempting ml setup");
+			yield();
 			TryManialinkSetup();
 			yield();
 		}
@@ -80,12 +86,17 @@ void WatchForSetup()
 		RerunInjectionsOnSetupCoro();
 		dev_trace("Cached ML injections re-run");
 		yield();
-		// wait for cmap to not exist
+		// wait for cmap to not exist or for hooks to disappear
 		while (cmap !is null) {
 			yield();
+			// ML gets cleared on changing game mode. Sleep a bit to let things load, will then break because SH is null
+			if (!manialinkHooksSetUp) {
+				trace('manialinkHooksSetUp is false');
+				break;
+			}
 			if (targetSH is null) break;  // restart if we lose targetSH
 		}
-		dev_trace("cmap is null");
+		dev_trace("cmap is null (or !manialinkHooksSetUp)");
 		@targetSH = null;
 	}
 }
@@ -151,7 +162,7 @@ const string ML_Setup_AttachId = MLHook::GlobalPrefix + "AngelScript_CallBack";
 bool get_manialinkHooksSetUp() {
 	if (cmap is null) return false;
 	bool foundCBLayer = false;
-	for (uint i = 0; i < cmap.UILayers.Length; i++) {
+	for (uint i = cmap.UILayers.Length - 1; i < cmap.UILayers.Length; i--) {
 		auto layer = cmap.UILayers[i];
 		if (layer.AttachId == ML_Setup_AttachId) {
 			if (targetSH is null) {
