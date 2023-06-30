@@ -10,7 +10,7 @@ a note from menu scripts about custom events:
 
 */
 
-void HookManialinkCode() 
+void HookManialinkCode()
 {
 	Dev::InterceptProc("CGameManiaApp", "LayerCustomEvent", _LayerCustomEvent);
 	Dev::InterceptProc("CGameManiaAppPlayground", "SendCustomEvent", _SendCustomEvent);
@@ -37,7 +37,7 @@ void HookManialinkCode()
 	startnew(WatchForEditor);
 }
 
-void SetUpMenu() 
+void SetUpMenu()
 {
 	while (mcma is null) yield();
 	while (mcma.UILayers.Length < 20) yield();
@@ -55,7 +55,7 @@ void SetUpMenu()
 
 // Wait for cmap to be non-null and set up the hook.
 // Repeat so that it is done each time
-void WatchForSetup() 
+void WatchForSetup()
 {
 	while (true) {
 		// if (PanicMode::IsActive) WarnOnPanic;
@@ -112,7 +112,7 @@ void WatchForEditor()
 
 
 // A one-time version of the above
-void EnsureHooksEstablished() 
+void EnsureHooksEstablished()
 {
 	while (cmap is null) yield();
 	while (!uiPopulated) yield();
@@ -120,7 +120,7 @@ void EnsureHooksEstablished()
 	while (targetSH is null) throw('targetSH == null; should never happen?');
 }
 
-void EnsureMenuHooksEstablished() 
+void EnsureMenuHooksEstablished()
 {
 	while (mcma is null) yield();
 	while (mcma.UILayers.Length < 20) yield();
@@ -128,14 +128,14 @@ void EnsureMenuHooksEstablished()
 	while (targetMenuSH is null) throw('targetMenuSH == null; should never happen?');
 }
 
-void EnsureEditorHooksEstablished() 
+void EnsureEditorHooksEstablished()
 {
 	while (editor is null) yield();
 	while (!manialinkEditorHooksSetUp) yield();
 	while (targetEditorSH is null) throw('targetEditorSH == null; should never happen?');
 }
 
-bool get_uiPopulated() 
+bool get_uiPopulated()
 {
 	if (cmap is null) return false;
 	if (GetApp().CurrentPlayground is null) return false;
@@ -394,6 +394,7 @@ void CheckForPendingEvents() {
 			}
 		}
 	} else { cmapChecker.Reset(); }
+
 	// CGameScriptChatEvent -- chat managers seem always null
 	// CInputScriptEvent
 	if (InputMgr !is null && InputMgr.PendingEvents.Length > 0) {
@@ -405,6 +406,7 @@ void CheckForPendingEvents() {
 			}
 		}
 	} else { InputMgrChecker.Reset(); }
+
 	// CGameManiaAppTitle / CGameManiaAppScriptEvent -- works!
 	if (mcma !is null && mcma.PendingEvents.Length > 0) {
 		uint peLen = mcma.PendingEvents.Length;
@@ -434,7 +436,7 @@ void CheckForPendingEvents() {
 bool _LayerCustomEvent(CMwStack &in stack, CMwNod@ nod) {
 	if (PanicMode::IsActive) return true;
 	try {
-		CheckForPendingEvents();
+		// CheckForPendingEvents();
 		if (EventInspector::g_capturing || HookRouter::shouldRouteLayerEvents) {
 			wstring type = stack.CurrentWString(1);
 			auto data = stack.CurrentBufferWString();
@@ -508,45 +510,54 @@ bool _SendCustomEventSH(CMwStack &in stack, CMwNod@ nod) {
 	if (PanicMode::IsActive) return true;
 	try {
 		CheckForPendingEvents();
-		wstring type = stack.CurrentWString(1);
-		string s_type = string(type);
+		string s_type = string(stack.CurrentWString(1));
 		bool is_mlhook_event = s_type.StartsWith(MLHook::GlobalPrefix);
 
 		/* putting the hook router call here will route all events */
 		if (EventInspector::IsCapturing) {
-			EventInspector::CaptureEvent(type, stack.CurrentBufferWString(), EventSource::SH_SendCE, (noIntercept ? "AS" : ""));
+			EventInspector::CaptureEvent(s_type, stack.CurrentBufferWString(), EventSource::SH_SendCE, (noIntercept ? "AS" : ""));
 		}
 
 		// custom events are from maniascript, so we always want to intercept them and let everything else through.
 		// if noIntercept is set, then we don't want to bother checking it b/c it came via MLHook anyway.
 		if (noIntercept) return true;
 		// return here only if it's not an MLhook event AND we don't want to capture SH events
-		if (!is_mlhook_event && !HookRouter::shouldRouteScriptHandlerEvents) return true;
+		if (!is_mlhook_event && !HookRouter::ShouldRouteExtraEvents()) return true;
 
 		auto data = stack.CurrentBufferWString();
 		HookRouter::OnEvent(MLHook::PendingEvent(s_type, data));
 
 		// return early for non-mlhook events as optimization
-		if (!is_mlhook_event)
+		if (!is_mlhook_event) {
 			return true; // game events -> true, mlhook events -> false
+		}
 
 		bool isPgTrigger = s_type == MLHook::PlaygroundHookEventName;
 		bool isMenuTrigger = !isPgTrigger && s_type == MLHook::MenuHookEventName;
 		bool isEditorTrigger = !isPgTrigger && !isMenuTrigger && s_type == MLHook::EditorHookEventName;
-		
+
 		if (isPgTrigger && targetSH !is null && targetSH.Page !is null) {
 			SendEvents_RunOnlyWhenSafe();
 		} else if (isMenuTrigger && targetMenuSH !is null && targetMenuSH.Page !is null) {
 			SendMenuEvents_RunOnlyWhenSafe();
 		} else if (isEditorTrigger && targetEditorSH !is null && targetEditorSH.Page !is null) {
 			SendEditorEvents_RunOnlyWhenSafe();
-		} if (s_type.StartsWith(MLHook::LogMePrefix)) {
+		}
+		if (s_type.StartsWith(MLHook::LogMePrefix)) {
 			print("[" + s_type.SubStr(MLHook::LogMePrefix.Length) + " via MLHook] " + FastBufferWStringToString(data));
 		}
 
 		if (isPgTrigger || isMenuTrigger || isEditorTrigger) {
+			// triggers callbacks for running during ML execution
 			MLHook::_ML_Hook_Feed.OnEvent(MLHook::PendingEvent(s_type, data));
 		}
+
+		// ! this doesn't work. probably need to wait for Miss's ML exec stuff
+		// // we only route pending events during the trigger event, so is_mlhook_event is always true at this time.
+		// if (isPgTrigger && HookRouter::shouldRoutePgPendingEvents) {
+		// 	// also check for playground PendingEvents
+		// 	CheckAndRoutePgPendingEvents();
+		// }
 
 		return false;
 	} catch {
@@ -555,9 +566,12 @@ bool _SendCustomEventSH(CMwStack &in stack, CMwNod@ nod) {
 	}
 }
 
-// bool logWhenCalled(CMwStack &in stack, CMwNod@ nod) {
-//     if (noIntercept) return true;
-//     if (targetSH is null || targetSH.Page is null) return true;
-//     SendEvents_RunOnlyWhenSafe();
-//     return true;
+// void CheckAndRoutePgPendingEvents() {
+// 	if (cmap is null) return;
+// 	// CGameManiaAppPlaygroundScriptEvent
+// 	// trace('cmap.PendingEvents: ' + cmap.PendingEvents.Length);
+// 	for (uint i = 0; i < cmap.PendingEvents.Length; i++) {
+// 		CGameManiaAppPlaygroundScriptEvent@ item = cmap.PendingEvents[i];
+// 		HookRouter::RoutePlaygroundScriptEvent(item);
+// 	}
 // }

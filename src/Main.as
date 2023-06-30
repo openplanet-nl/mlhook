@@ -109,19 +109,19 @@ CGameManiaAppTitle@ get_mcma()
 	return MenuMgr.MenuCustom_CurrentManiaApp;
 }
 
-CGameCtnEditorFree@ get_editor() 
+CGameCtnEditorFree@ get_editor()
 {
 	return cast<CGameCtnEditorFree>(app.Editor);
 }
 
-CSmEditorPluginMapType@ get_PluginMapType() 
+CSmEditorPluginMapType@ get_PluginMapType()
 {
 	if (editor is null) return null;
 	return cast<CSmEditorPluginMapType>(editor.PluginMapType);
 }
 
 // true when app.Editor is null (so any editor will mean this returns false)
-bool get_AppEditorIsNull() 
+bool get_AppEditorIsNull()
 {
 	return app.Editor is null;
 }

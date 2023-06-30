@@ -1,12 +1,22 @@
-namespace HookRouter {
+namespace HookRouter
+{
 	dictionary hooksByType = dictionary();
 	array<MLHook::PendingEvent@> pendingEvents;
 	dictionary hooksByPlugin = dictionary();
 	bool shouldRouteLayerEvents = false;
 	bool shouldRouteScriptHandlerEvents = false;
 	bool shouldRoutePlaygroundEvents = false;
+	// todo: implement this properly
+	// bool shouldRoutePgPendingEvents = false;
+	// bool shouldRoutePgPendingEvents = true;
 
-	void MainCoro() {
+	bool ShouldRouteExtraEvents()
+	{
+		return shouldRoutePlaygroundEvents; // || shouldRoutePgPendingEvents;
+	}
+
+	void MainCoro()
+	{
 		pendingEvents.Reserve(100);
 		while (true) {
 			yield();
@@ -33,7 +43,8 @@ namespace HookRouter {
 		}
 	}
 
-	void RegisterMLHook(MLHook::HookMLEventsByType@ hookObj, const string &in _type = "", bool isNadeoEvent = false) {
+	void RegisterMLHook(MLHook::HookMLEventsByType@ hookObj, const string &in _type = "", bool isNadeoEvent = false)
+	{
 		if (hookObj is null) {
 			warn("RegisterMLHook was passed a null hook object!");
 			return;
@@ -60,7 +71,8 @@ namespace HookRouter {
 		}
 	}
 
-	array<MLHook::HookMLEventsByType@>@ GetHooksByType(const string &in type, bool createIfAbsent = true) {
+	array<MLHook::HookMLEventsByType@>@ GetHooksByType(const string &in type, bool createIfAbsent = true)
+	{
 		auto hooks = cast<array<MLHook::HookMLEventsByType@>>(hooksByType[type]);
 		if (hooks is null && createIfAbsent) {
 			@hooks = array<MLHook::HookMLEventsByType@>();
@@ -69,7 +81,8 @@ namespace HookRouter {
 		return hooks;
 	}
 
-	array<MLHook::HookMLEventsByType@>@ GetHooksByPlugin(const string &in pluginID) {
+	array<MLHook::HookMLEventsByType@>@ GetHooksByPlugin(const string &in pluginID)
+	{
 		auto hooks = cast<array<MLHook::HookMLEventsByType@> >(hooksByPlugin[pluginID]);
 		if (hooks is null) {
 			@hooks = array<MLHook::HookMLEventsByType@>();
@@ -78,7 +91,8 @@ namespace HookRouter {
 		return hooks;
 	}
 
-	void OnHookRegistered(MLHook::HookMLEventsByType@ hookObj) {
+	void OnHookRegistered(MLHook::HookMLEventsByType@ hookObj)
+	{
 		auto plugin = Meta::ExecutingPlugin();
 		auto hooks = GetHooksByPlugin(plugin.ID);
 		// if we already have a reference to this hook for this plugin don't add it again (e.g., b/c it watches multiple event types)
@@ -89,7 +103,8 @@ namespace HookRouter {
 	}
 
 	// for a plugin's hooks, set all to null, set array length to 0, and delete the plugin's entry from the plugin->hooks map
-	void UnregisterExecutingPluginsMLHooks() {
+	void UnregisterExecutingPluginsMLHooks()
+	{
 		auto plugin = Meta::ExecutingPlugin();
 		if (hooksByPlugin.Exists(plugin.ID)) {
 			auto hooks = GetHooksByPlugin(plugin.ID);
@@ -103,7 +118,8 @@ namespace HookRouter {
 	}
 
 	// unregisters a hook object by checking all event types' list of hooks.
-	void UnregisterMLHook(MLHook::HookMLEventsByType@ hookObj) {
+	void UnregisterMLHook(MLHook::HookMLEventsByType@ hookObj)
+	{
 		if (hookObj is null) return;
 		auto types = hooksByType.GetKeys();
 		string[] remTypes = {};
@@ -125,8 +141,16 @@ namespace HookRouter {
 		}
 	}
 
-	void OnEvent(MLHook::PendingEvent@ event) {
-		if (hooksByType.Exists(event.type))
+	void OnEvent(MLHook::PendingEvent@ event)
+	{
+		if (hooksByType.Exists(event.type)) {
 			pendingEvents.InsertLast(event);
+		}
 	}
+
+	// void RoutePlaygroundScriptEvent(CGameManiaAppPlaygroundScriptEvent@ event)
+	// {
+	// 	// if (hooksByType.Exists(tostring(event.PlaygroundScriptEventType)))
+	// 	trace("Event (" + tostring(event.PlaygroundType) + ") ref count: " + Reflection::GetRefCount(event));
+	// }
 }

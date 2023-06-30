@@ -64,7 +64,7 @@ done? seems not to be used
 
 namespace EventInspector
 {
-	void CaptureEvent(wstring &in type, MwFastBuffer<wstring> &in data, EventSource &in source, const string &in annotation = "", CGameUILayer@ layer = null, CGameEditorPluginHandle@ handle = null)
+	void CaptureEvent(const string &in type, MwFastBuffer<wstring> &in data, EventSource &in source, const string &in annotation = "", CGameUILayer@ layer = null, CGameEditorPluginHandle@ handle = null)
 	{
 		if (!ShouldCapture) return;
 		auto event = CustomEvent(type, data, source, annotation, layer, handle);
