@@ -31,18 +31,28 @@ namespace MLHook
 	// Inject a ML page to the playground. The page name will be MLHook_PageUID.
 	void InjectManialinkToPlayground(const string &in PageUID, const string &in ManialinkPage, bool replace = false)
 	{
+		CheckProvidedManialinkPage(ManialinkPage);
 		CMAP_InjectQueue.InsertLast(InjectionSpec(PageUID, ToMLScript(ManialinkPage), Meta::ExecutingPlugin().ID, replace));
 	}
 	// Inject a ML page to the menu. The page name will be MLHook_PageUID.
 	void InjectManialinkToMenu(const string &in PageUID, const string &in ManialinkPage, bool replace = false)
 	{
+		CheckProvidedManialinkPage(ManialinkPage);
 		Menu_InjectQueue.InsertLast(InjectionSpec(PageUID, ToMLScript(ManialinkPage), Meta::ExecutingPlugin().ID, replace));
 	}
 	// Inject a ML page to editor.PluginMapType. The page name will be MLHook_PageUID.
 	void InjectManialinkToEditor(const string &in PageUID, const string &in ManialinkPage, bool replace = false)
 	{
+		CheckProvidedManialinkPage(ManialinkPage);
 		Editor_InjectQueue.InsertLast(InjectionSpec(PageUID, ToMLScript(ManialinkPage), Meta::ExecutingPlugin().ID, replace));
 	}
+
+	void CheckProvidedManialinkPage(const string &in src) {
+		if (src.Contains("<manialink")) {
+			throw("Refusing to inject ML script that already contains `<manialink>` tags. Please do not include these in your script (other ML tags are fine).");
+		}
+	}
+
 	// Remove an injected ML page with the given PageUID from the playground
 	void RemoveInjectedMLFromPlayground(const string &in PageUID)
 	{
