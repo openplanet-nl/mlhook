@@ -58,6 +58,7 @@ void SetUpMenu()
 void WatchForSetup()
 {
 	while (true) {
+		@targetSH = null;
 		// if (PanicMode::IsActive) WarnOnPanic;
 		yield();
 		// wait for cmap to exist
@@ -72,12 +73,11 @@ void WatchForSetup()
 		dev_trace("ui populated");
 		for (uint i = 0; i < 10; i++) yield();
 		// wait for script hooks to be set up
-		trace("UI populated: about to do ML page injection");
+		dev_trace("UI populated: about to do ML page injection");
 		dev_trace("checking ml hooks set up");
 		yield();
-		while (!manialinkHooksSetUp) {
+		while (cmap !is null && !manialinkHooksSetUp) {
 			dev_trace("attempting ml setup");
-			yield();
 			TryManialinkSetup();
 			yield();
 		}
@@ -91,13 +91,12 @@ void WatchForSetup()
 			yield();
 			// ML gets cleared on changing game mode. Sleep a bit to let things load, will then break because SH is null
 			if (!manialinkHooksSetUp) {
-				trace('manialinkHooksSetUp is false');
+				dev_trace('manialinkHooksSetUp is false');
 				break;
 			}
 			if (targetSH is null) break;  // restart if we lose targetSH
 		}
 		dev_trace("cmap is null (or !manialinkHooksSetUp)");
-		@targetSH = null;
 	}
 }
 
@@ -555,7 +554,7 @@ bool _SendCustomEventSH(CMwStack &in stack, CMwNod@ nod) {
 			SendEditorEvents_RunOnlyWhenSafe();
 		}
 		if (s_type.StartsWith(MLHook::LogMePrefix)) {
-			print("[" + s_type.SubStr(MLHook::LogMePrefix.Length) + " via MLHook] " + FastBufferWStringToString(data));
+			ml_log("[" + s_type.SubStr(MLHook::LogMePrefix.Length) + " via MLHook] " + FastBufferWStringToString(data));
 		}
 
 		if (isPgTrigger || isMenuTrigger || isEditorTrigger) {

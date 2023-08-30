@@ -48,6 +48,7 @@ void Render()
 
 void RenderInterface()
 {
+	RenderLogsWindow();
 #if SIG_DEVELOPER
 	EventInspector::RenderEventInspectorWindow();
 	LayersBrowser::RenderInterface();
@@ -61,10 +62,14 @@ void RenderMenuMain()
 
 void RenderMenu()
 {
+	if (UI::BeginMenu(Icons::PhoneSquare + " MLHook")) {
+		RenderLogsMenuItem();
 #if SIG_DEVELOPER
-	EventInspector::RenderEventInspectorMenuItem();
-	LayersBrowser::RenderMenu();
+		EventInspector::RenderEventInspectorMenuItem();
+		LayersBrowser::RenderMenu();
 #endif
+		UI::EndMenu();
+	}
 }
 
 void NotifyError(const string &in msg)

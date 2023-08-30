@@ -95,7 +95,8 @@ namespace MLHook {
 				dataStr += event.data[i];
 			}
 			dataStr += (event.data.Length == 0) ? "}" : " }";
-			trace('[DebugLogAllHook] Type: ' + type + ', Data: ' + dataStr);
+			auto msg = '[DebugLogAllHook] Type: ' + type + ', Data: ' + dataStr;
+			trace(msg);
 		}
 	}
 
