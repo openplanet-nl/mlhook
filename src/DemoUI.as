@@ -1,3 +1,5 @@
+#if TMNEXT
+
 [Setting category="Demo"]
 bool Setting_DemoEnabled = false;
 
@@ -59,3 +61,9 @@ void RunGhostTest() {
 	SH_SCE_EventQueue.InsertLast(CustomEvent("TMxSM_Race_Record_ToggleGhost", {"7ccc9d81-bc43-4faa-b454-46bed6b6d4f5"}));
 	SH_SCE_EventQueue.InsertLast(CustomEvent("TMxSM_Race_Record_ToggleGhost", {"aca96daf-0fda-4496-9887-22e616d8a481"}));
 }
+
+#else
+
+void RenderDemoUI() {}
+
+#endif

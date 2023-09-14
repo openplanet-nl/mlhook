@@ -79,6 +79,7 @@ namespace EventInspector
 		auto ce = CustomEvent("CGameManialinkScriptEvent::EType::" + tostring(event.Type), ArrStringToFastBufferWString(data), EventSource::ML_SE);
 		_RecordCaptured(ce);
 	}
+#if TMNEXT
 
 	// // todo: does this work?
 	// void CaptureServerPluginEvent(CGameServerPluginEvent@ event) {
@@ -282,4 +283,14 @@ namespace EventInspector
 		auto ce = CustomEvent("CInputScriptEvent::EType::" + tostring(event.Type), ArrStringToFastBufferWString(data), EventSource::InputSE, "");
 		_RecordCaptured(ce);
 	}
+
+#else
+
+	// void CaptureMLScriptEvent(CGameManialinkScriptEvent@ event) {}
+	void CaptureMAScriptEvent(CGameManiaAppScriptEvent@ event) {}
+	void CapturePMScriptEvent(CGameEditorPluginMapScriptEvent@ event) {}
+	void CaptureMAPGScriptEvent(CGameManiaAppPlaygroundScriptEvent@ event) {}
+	void CaptureInputScriptEvent(CInputScriptEvent@ event) {}
+
+#endif
 }

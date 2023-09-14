@@ -74,8 +74,8 @@ void WatchForSetup()
 		for (uint i = 0; i < 10; i++) yield();
 		// wait for script hooks to be set up
 		dev_trace("UI populated: about to do ML page injection");
-		dev_trace("checking ml hooks set up");
 		yield();
+		dev_trace("checking ml hooks set up");
 		while (cmap !is null && !manialinkHooksSetUp) {
 			dev_trace("attempting ml setup");
 			TryManialinkSetup();
