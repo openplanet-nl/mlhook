@@ -454,7 +454,7 @@ bool _LayerCustomEvent(CMwStack &in stack, CMwNod@ nod) {
 				auto layer = cast<CGameUILayer>(stack.CurrentNod(2));
 				EventInspector::CaptureEvent(type, data, EventSource::LayerCE, (noIntercept ? "AS" : ""), layer);
 			}
-			if (HookRouter::shouldRouteLayerEvents) {
+			if (HookRouter::shouldRouteLayerEvents && !string(type).EndsWith("_PreloadImages")) {
 				HookRouter::OnEvent(MLHook::PendingEvent(type, data));
 			}
 		}

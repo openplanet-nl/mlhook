@@ -54,7 +54,7 @@ namespace MLHook {
 	import const string get_MenuHookEventName() from "MLHook";
 	import const string get_EditorHookEventName() from "MLHook";
 
-	// Register a hook object to recieve events of the specified type (or the default for that page). The MLHook_Event_ prefix is automatically applied, unless isNadeoEvent is false
+	// Register a hook object to recieve events of the specified type (or the default for that page). The MLHook_Event_ prefix is automatically applied, except if isNadeoEvent is true
 	import void RegisterMLHook(HookMLEventsByType@ hookObj, const string &in type = "", bool isNadeoEvent = false) from "MLHook";
 	// Unregister a hook object
 	import void UnregisterMLHookFromAll(HookMLEventsByType@ hookObj) from "MLHook";

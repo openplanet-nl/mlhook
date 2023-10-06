@@ -136,7 +136,7 @@ namespace MLHook
 
 	const string get_EditorHookEventName() { return _EditorHookEventName; }
 
-	// Register a hook object to recieve events of the specified type (or the default for that page). The MLHook_Event_ prefix is automatically applied, unless isNadeoEvent is false
+	// Register a hook object to recieve events of the specified type (or the default for that page). The MLHook_Event_ prefix is automatically applied, except if isNadeoEvent is true
 	void RegisterMLHook(HookMLEventsByType@ hookObj, const string &in type = "", bool isNadeoEvent = false)
 	{
 		HookRouter::RegisterMLHook(hookObj, type, isNadeoEvent);
@@ -155,8 +155,14 @@ namespace MLHook
 	 */
 	void UnregisterMLHooksAndRemoveInjectedML()
 	{
+		auto pluginName = Meta::ExecutingPlugin().Name;
+		dev_trace('unloading for ' + pluginName + ': InjectedML');
 		RemoveAllInjectedML();
+		dev_trace('unloading for ' + pluginName + ': PluginsMLHooks');
 		HookRouter::UnregisterExecutingPluginsMLHooks();
+		dev_trace('unloading for ' + pluginName + ': Playground Callbacks');
+		_ML_Hook_Feed.DeregisterCallbacksFrom(Meta::ExecutingPlugin());
+		dev_trace('unloading for ' + pluginName + ': Done');
 	}
 
 	// uninject all your plugins ML pages
@@ -221,7 +227,7 @@ namespace MLHook
 
 		Register a function to be called during ML execution each frame. Note that the argument to the callback will always be null.
 
-		Note that no way to remove these functions exists yet.
+		~~Note that no way to remove these functions exists yet.~~
 	*/
 	void RegisterPlaygroundMLExecutionPointCallback(MLFeedFunction@ func)
 	{

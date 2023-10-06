@@ -24,6 +24,11 @@ namespace LayersBrowser {
 				UI::EndTabItem();
 			}
 
+			if (UI::BeginTabItem("Editor")) {
+				RenderEditorUiLayersTab();
+				UI::EndTabItem();
+			}
+
 			UI::EndTabBar();
 			UI::End();
 		}
@@ -53,6 +58,17 @@ namespace LayersBrowser {
 			return;
 		}
 		DrawManiaAppUILayers(cmap);
+	}
+
+	void RenderEditorUiLayersTab() {
+		if (PluginMapType is null) {
+			UI::Text("PluginMapType is null!\nTry loading a map in the editor.");
+			return;
+		} else if (PluginMapType.UILayers.Length == 0) {
+			UI::Text("Waiting for UILayers...");
+			return;
+		}
+		DrawManiaAppUILayers(PluginMapType);
 	}
 
 	void DrawManiaAppUILayers(CGameManiaApp@ mApp) {

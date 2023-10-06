@@ -34,10 +34,10 @@ namespace MLHook {
 	shared funcdef void MLFeedFunction(ref@ processedData);
 
 	shared class MLFeed : HookMLEventsByType {
-		MLFeedFunctionRaw@[] callbacksRaw;
-		Meta::Plugin@[] callbackRawPlugins;
+		// MLFeedFunctionRaw@[] callbacksRaw;
+		// Meta::Plugin@[] callbackRawPlugins;
 		MLFeedFunction@[] callbacks;
-		Meta::Plugin@[] callbackPlugins;
+		string[] callbackPlugins;
 
 		MLFeed(const string &in typeToDistribute) {
 			super(typeToDistribute);
@@ -47,34 +47,45 @@ namespace MLHook {
 			if (cb is null)
 				throw('cannot register a null callback');
 			callbacks.InsertLast(cb);
-			callbackPlugins.InsertLast(Meta::ExecutingPlugin());
+			callbackPlugins.InsertLast(Meta::ExecutingPlugin().ID);
 		}
 
 		void OnEvent(PendingEvent@ event) override final {
 			auto obj = Preprocess(event.data);
 			// i needs to be int in case of an issue with index 0
-			for (int i = 0; i < int(callbacksRaw.Length); i++) {
-				try {
-					callbacksRaw[i](event.data);
-				} catch {
-					// todo: test
-					NotifyMLHookError("Exception in callback for " + callbackRawPlugins[i].Name + " -- it will be disabled.\n\nException details:\n" + getExceptionInfo());
-					callbacksRaw.RemoveAt(i);
-					callbackRawPlugins.RemoveAt(i);
-					i--;
-				}
-			}
 			for (int i = 0; i < int(callbacks.Length); i++) {
 				try {
 					callbacks[i](obj);
 				} catch {
 					// todo: test
-					NotifyMLHookError("Exception in callback for " + callbackRawPlugins[i].Name + " -- it will be disabled.\n\nException details:\n" + getExceptionInfo());
+					NotifyMLHookError("Exception in callback for " + callbackPlugins[i] + " -- it will be disabled.\n\nException details:\n" + getExceptionInfo());
 					callbacks.RemoveAt(i);
 					callbackPlugins.RemoveAt(i);
 					i--;
 				}
 			}
+		}
+
+
+		void DeregisterCallbacksFrom(Meta::Plugin@ plugin) {
+			uint[] removeIxs = {};
+			for (uint i = 0; i < callbackPlugins.Length; i++) {
+#if DEV
+				trace('Checking callbacks plugin ' + i + ' for dereg');
+#endif
+				auto p = callbackPlugins[i];
+
+				if (p == plugin.ID) {
+					removeIxs.InsertLast(i);
+				}
+			}
+			for (int i = removeIxs.Length - 1; i >= 0; i--) {
+				callbacks.RemoveAt(i);
+				callbackPlugins.RemoveAt(i);
+			}
+#if DEV
+			trace('Unregistered callbacks ('+removeIxs.Length+') for ' + plugin.ID);
+#endif
 		}
 
 		ref@ Preprocess(MwFastBuffer<wstring> &in data) {

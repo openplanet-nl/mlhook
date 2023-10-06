@@ -3,7 +3,7 @@ namespace HookRouter
 	dictionary hooksByType = dictionary();
 	array<MLHook::PendingEvent@> pendingEvents;
 	dictionary hooksByPlugin = dictionary();
-	bool shouldRouteLayerEvents = false;
+	bool shouldRouteLayerEvents = true;
 	bool shouldRouteScriptHandlerEvents = false;
 	bool shouldRoutePlaygroundEvents = false;
 	// todo: implement this properly
@@ -57,7 +57,7 @@ namespace HookRouter
 			type = MLHook::EventPrefix + type;
 		} else {
 			// if we get any nadeo event capture requests, enable capturing SendCustomEvent events
-			// shouldRouteLayerEvents = true; // don't enable layer events atm -- big performance hit in some places
+			shouldRouteLayerEvents = true;
 			shouldRoutePlaygroundEvents = true;
 			shouldRouteScriptHandlerEvents = true;
 		}
@@ -123,21 +123,25 @@ namespace HookRouter
 		if (hookObj is null) return;
 		auto types = hooksByType.GetKeys();
 		string[] remTypes = {};
+		uint removed = 0;
 		for (uint i = 0; i < types.Length; i++) {
 			auto hookType = types[i];
 			auto hooks = GetHooksByType(hookType, false);
+			if (hooks is null) continue;
 			int hookIx = hooks.FindByRef(hookObj);
 			while (hookIx >= 0) {
+				dev_trace('removing hook on '+hookType+' at ix: ' + hookIx);
 				hooks.RemoveAt(hookIx);
 				remTypes.InsertLast(hookType);
 				hookIx = hooks.FindByRef(hookObj);
+				removed++;
 			}
 			if (hooks.Length == 0) {
 				hooksByType.Delete(hookType);
 			}
 		}
 		if (remTypes.Length > 0) {
-			trace('UnregisteredMLHook object for types: ' + string::Join(remTypes, ", "));
+			trace('UnregisteredMLHook objects ('+removed+') for types: ' + string::Join(remTypes, ", "));
 		}
 	}
 

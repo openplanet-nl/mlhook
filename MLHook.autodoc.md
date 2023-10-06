@@ -101,7 +101,7 @@ deprecated in favor of Queue_MessageManialinkPlayground
 
 ### RegisterMLHook -- `void RegisterMLHook(HookMLEventsByType@ hookObj, const string &in type = "", bool isNadeoEvent = false)`
 
-Register a hook object to recieve events of the specified type (or the default for that page). The MLHook_Event_ prefix is automatically applied, unless isNadeoEvent is false
+Register a hook object to recieve events of the specified type (or the default for that page). The MLHook_Event_ prefix is automatically applied, except if isNadeoEvent is true
 
 ### RegisterPlaygroundMLExecutionPointCallback -- `void RegisterPlaygroundMLExecutionPointCallback(MLFeedFunction@ func)`
 
