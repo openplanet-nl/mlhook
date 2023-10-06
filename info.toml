@@ -2,7 +2,7 @@
 name     = "MLHook & Event Inspector"
 author   = "XertroV"
 category = "MLHook"
-version  = "0.5.0"
+version  = "0.5.1"
 siteid   = 252
 
 [script]
