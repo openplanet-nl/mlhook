@@ -106,6 +106,12 @@ CGameManiaPlanet@ get_app()
 	return cast<CGameManiaPlanet>(GetApp());
 }
 
+//
+bool get_IsLoadingScreenActive()
+{
+	return app.LoadProgress.State == NGameLoadProgress::EState::Displayed;
+}
+
 // app.Network.ClientManiaAppPlayground
 CGameManiaAppPlayground@ get_cmap()
 {

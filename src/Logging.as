@@ -5,7 +5,11 @@ void dev_trace(const string &in msg) {
 }
 
 [Setting category="Logging" name="Pass logs from ML through to Openplanet logs"]
+#if DEV
+bool S_PassThroughMLLogs = true;
+#else
 bool S_PassThroughMLLogs = false;
+#endif
 
 string[] logMsgsFromML;
 

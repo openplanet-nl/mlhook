@@ -32,9 +32,9 @@ void HookManialinkCode()
 	// Dev::InterceptProc("CGameDataFileManagerScript", "Map_NadeoServices_GetListFromUid", _CheckForEvents);
 	// Dev::InterceptProc("CGameDataFileManagerScript", "Map_NadeoServices_Get", _CheckForEvents);
 #endif
-	startnew(WatchForSetup);
-	startnew(SetUpMenu);
-	startnew(WatchForEditor);
+	startnew(WatchForSetup).WithRunContext(Meta::RunContext::AfterMainLoop);
+	startnew(SetUpMenu).WithRunContext(Meta::RunContext::AfterMainLoop);
+	startnew(WatchForEditor).WithRunContext(Meta::RunContext::AfterMainLoop);
 }
 
 void SetUpMenu()
@@ -51,6 +51,7 @@ void SetUpMenu()
 		return;
 	}
 	RunMenuInjectionOnSetup();
+	// we can return here because the menu mania app isn't cleared
 }
 
 // Wait for cmap to be non-null and set up the hook.
@@ -59,8 +60,9 @@ void WatchForSetup()
 {
 	while (true) {
 		@targetSH = null;
+		while (IsLoadingScreenActive) yield();
 		// if (PanicMode::IsActive) WarnOnPanic;
-		yield();
+		// yield();
 		// wait for cmap to exist
 		while (cmap is null) {
 			yield();
@@ -75,11 +77,11 @@ void WatchForSetup()
 		// wait for script hooks to be set up
 		dev_trace("UI populated: about to do ML page injection");
 		dev_trace("checking ml hooks set up");
-		yield();
+		// yield();
 		while (cmap !is null && !manialinkHooksSetUp) {
+			yield();
 			dev_trace("attempting ml setup");
 			TryManialinkSetup();
-			yield();
 		}
 		if (targetSH is null) continue;  // restart if we didn't get targetSH properly
 		dev_trace("ML hook set up");
@@ -87,7 +89,7 @@ void WatchForSetup()
 		dev_trace("Cached ML injections re-run");
 		yield();
 		// wait for cmap to not exist or for hooks to disappear
-		while (cmap !is null) {
+		while (cmap !is null && !IsLoadingScreenActive) {
 			yield();
 			// ML gets cleared on changing game mode. Sleep a bit to let things load, will then break because SH is null
 			if (!manialinkHooksSetUp) {
@@ -96,7 +98,7 @@ void WatchForSetup()
 			}
 			if (targetSH is null) break;  // restart if we lose targetSH
 		}
-		dev_trace("cmap is null (or !manialinkHooksSetUp)");
+		dev_trace("cmap is null (or !manialinkHooksSetUp, or loading screen active)");
 	}
 }
 
@@ -116,6 +118,7 @@ void WatchForEditor()
 		RunEditorInjectionOnSetup();
 		// wait for editor to exit
 		while (!AppEditorIsNull) yield();
+		while (IsLoadingScreenActive) yield();
 		@targetEditorSH = null;
 	}
 }
