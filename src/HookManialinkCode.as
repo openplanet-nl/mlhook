@@ -68,8 +68,10 @@ void WatchForSetup()
 			yield();
 		}
 		dev_trace("cmap not null");
-		yield();
+		// yield();
+		dev_trace('checking first uiPopulated');
 		while (!uiPopulated) {
+			dev_trace('uiPopulated: false');
 			yield();
 		}
 		dev_trace("ui populated");
@@ -150,12 +152,19 @@ void EnsureEditorHooksEstablished()
 
 bool get_uiPopulated()
 {
-	if (cmap is null) return false;
+	dev_trace('uiPopulated: loading screen check');
+	if (IsLoadingScreenActive) return false;
+	dev_trace('uiPopulated: checking cmap and currPg');
+	if (cmap is null) { dev_trace('false'); return false; }
+	dev_trace('uiPopulated: checking currPg, app null? ' + (GetApp() is null));
 	if (GetApp().CurrentPlayground is null) return false;
 	// 2 by default, it seems; but if there are not more than 2 here, there will be some elsewhere (probably)
+	dev_trace('uiPopulated: checking UILayers');
 	if (cmap.UILayers.Length > 2) return true;
+	dev_trace('uiPopulated: checking UIConfigs and UIConfigs[0].UILayers');
 	if (GetApp().CurrentPlayground.UIConfigs.Length == 0) return false;
 	if (GetApp().CurrentPlayground.UIConfigs[0].UILayers.Length > 0) return true;
+	dev_trace('uiPopulated: checking UIConfigs and UIConfigs[0].UILayers');
 	return false;
 }
 
