@@ -13,14 +13,18 @@ void Main()
 #endif
 }
 
-void OnDisabled()
+void _Unload()
 {
 	RemoveAllInjections();
+}
+void OnDisabled()
+{
+	_Unload();
 }
 void OnEnabled() {}
 void OnDestroyed()
 {
-	RemoveAllInjections();
+	_Unload();
 }
 
 void MainCoro()

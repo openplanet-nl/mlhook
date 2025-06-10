@@ -32,9 +32,9 @@ void HookManialinkCode()
 	// Dev::InterceptProc("CGameDataFileManagerScript", "Map_NadeoServices_GetListFromUid", _CheckForEvents);
 	// Dev::InterceptProc("CGameDataFileManagerScript", "Map_NadeoServices_Get", _CheckForEvents);
 #endif
-	startnew(WatchForSetup).WithRunContext(Meta::RunContext::AfterMainLoop);
-	startnew(SetUpMenu).WithRunContext(Meta::RunContext::AfterMainLoop);
-	startnew(WatchForEditor).WithRunContext(Meta::RunContext::AfterMainLoop);
+	Meta::StartWithRunContext(Meta::RunContext::AfterMainLoop, WatchForSetup);
+	Meta::StartWithRunContext(Meta::RunContext::AfterMainLoop, SetUpMenu);
+	Meta::StartWithRunContext(Meta::RunContext::AfterMainLoop, WatchForEditor);
 }
 
 void SetUpMenu()
