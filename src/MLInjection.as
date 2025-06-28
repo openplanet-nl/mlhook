@@ -361,7 +361,7 @@ const string GenQueueName(const string &in PageUID, bool isNetwrite = false)
 	return (isNetwrite ? MLHook::NetQueuePrefix : MLHook::QueuePrefix) + PageUID;
 }
 
-const string GenManialinkPageForOutbound(OutboundMessage@[]@ outboundMsgs, const string &in declareQFor, const string &in declareNWQFor = "System")
+const string GenManialinkPageForOutbound(OutboundMessage@[]@ outboundMsgs, const string &in declareQFor, const string &in declareNWQFor = "UI")
 {
 	if (outboundMsgs.Length == 0) return "";
 	dictionary msgsFor = dictionary();
