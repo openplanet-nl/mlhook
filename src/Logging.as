@@ -35,7 +35,7 @@ void RenderLogsWindow() {
 		} else {
 			UI::ListClipper clip(logMsgsFromML.Length);
 			while (clip.Step()) {
-				for (uint i = clip.DisplayStart; i < clip.DisplayEnd; i++) {
+				for (int i = clip.DisplayStart; i < clip.DisplayEnd; i++) {
 					UI::Text(logMsgsFromML[i]);
 				}
 			}

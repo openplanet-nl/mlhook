@@ -371,7 +371,7 @@ const string GenManialinkPageForOutbound(OutboundMessage@[]@ outboundMsgs, const
 		if (!msgsFor.Exists(item.QueueTypeAndName))
 			@msgsFor[item.QueueTypeAndName] = StringAccumulator(item.queueName, item.IsNetwrite ? declareNWQFor : declareQFor, item.IsNetwrite);
 		// item.msgs is a json encoded string, so already includes the quotes.
-		cast<StringAccumulator>(msgsFor[item.QueueTypeAndName]).Add("[" + string::Join(item.msgs, ',') + "]");
+		cast<StringAccumulator>(msgsFor[item.QueueTypeAndName]).Add("[" + Text::Join(item.msgs, ',') + "]");
 	}
 
 	trace('MLHook preparing ' + outboundMsgs.Length + ' outbound messages to ML');

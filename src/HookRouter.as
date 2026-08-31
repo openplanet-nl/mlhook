@@ -141,7 +141,7 @@ namespace HookRouter
 			}
 		}
 		if (remTypes.Length > 0) {
-			trace('UnregisteredMLHook objects ('+removed+') for types: ' + string::Join(remTypes, ", "));
+			trace('UnregisteredMLHook objects ('+removed+') for types: ' + Text::Join(remTypes, ", "));
 		}
 	}
 

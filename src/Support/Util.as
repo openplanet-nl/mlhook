@@ -16,7 +16,7 @@ const string FastBufferWStringToString(MwFastBuffer<wstring> &in fbws)
 		auto item = fbws[i];
 		items[i] = '"' + string(item).Replace('"', '\\"') + '"';
 	}
-	return "{" + string::Join(items, ', ') + "}";
+	return "{" + Text::Join(items, ', ') + "}";
 }
 
 const string ArrStringToString(const string[] &in ss)
@@ -26,7 +26,7 @@ const string ArrStringToString(const string[] &in ss)
 		auto item = ss[i];
 		items[i] = '"' + string(item).Replace('"', '\\"') + '"';
 	}
-	return "{" + string::Join(items, ', ') + "}";
+	return "{" + Text::Join(items, ', ') + "}";
 }
 
 const string ArrUintToString(const uint[] &in ss)
@@ -36,7 +36,7 @@ const string ArrUintToString(const uint[] &in ss)
 		auto item = ss[i];
 		items[i] = '' + ss[i];
 	}
-	return "{" + string::Join(items, ', ') + "}";
+	return "{" + Text::Join(items, ', ') + "}";
 }
 
 
